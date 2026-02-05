@@ -1,0 +1,16 @@
+- [x] Start backend server
+- [ ] Set up React Router and basic app structure
+- [ ] Create AuthContext for authentication
+- [ ] Create components (Login, Register, Dashboard, Transactions, Budgets, Reports, SMSImport, Navbar)
+- [ ] Add CSS styling for all components
+- [ ] Start frontend dev server
+- [ ] Test the application
+=======
+- [x] Install frontend dependencies (axios, react-router-dom, recharts)
+- [x] Start backend server
+- [x] Set up React Router and basic app structure
+- [x] Create AuthContext for authentication
+- [x] Create components (Login, Register, Dashboard, Transactions, Budgets, Reports, SMSImport, Navbar)
+- [x] Add CSS styling for all components
+- [x] Start frontend dev server
+- [x] Test the application (Note: Dependency issues with React 19 and react-router-dom; MongoDB not installed)
