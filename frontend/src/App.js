@@ -9,6 +9,7 @@ import Budgets from './components/Budgets';
 import Reports from './components/Reports';
 import SMSImport from './components/SMSImport';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -22,9 +23,12 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="App">
-          <AuthContext.Consumer>
-            {({ user }) => user && <Navbar />}
-          </AuthContext.Consumer>
+<AuthContext.Consumer>
+  {({ user }) => user && <Navbar />}
+</AuthContext.Consumer>
+<AuthContext.Consumer>
+  {({ user }) => user && <Footer />}
+</AuthContext.Consumer>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

@@ -1,52 +1,639 @@
-.navbar {
-  background-color: #333;
-  color: white;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ============================================
+   Premium Fintech Navbar - Daily Budget Tracker
+   ============================================ */
+
+/* CSS Variables for consistent theming */
+:root {
+  /* Colors */
+  --primary-blue: #4F6BFF;
+  --primary-blue-hover: #3D5AFE;
+  --primary-blue-light: rgba(79, 107, 255, 0.1);
+  --accent-green: #00C896;
+  --accent-green-light: rgba(0, 200, 150, 0.1);
+  
+  /* Backgrounds */
+  --navbar-bg: rgba(255, 255, 255, 0.85);
+  --navbar-bg-solid: #ffffff;
+  --dropdown-bg: #ffffff;
+  --mobile-nav-bg: rgba(255, 255, 255, 0.98);
+  
+  /* Text */
+  --text-primary: #1A1A2E;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  
+  /* Borders */
+  --border-color: rgba(0, 0, 0, 0.05);
+  --border-color-light: rgba(0, 0, 0, 0.08);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.15);
+  
+  /* Spacing */
+  --navbar-height: 72px;
+  --border-radius: 12px;
+  --border-radius-sm: 8px;
+  --border-radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.35s ease;
 }
 
-.navbar-brand a {
-  color: white;
-  text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: bold;
+/* ============================================
+   Base Navbar Styles
+   ============================================ */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--navbar-height);
+  background: var(--navbar-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 1000;
+  transition: all var(--transition-normal);
 }
+
+/* Scrolled state - more opaque */
+.navbar-scrolled {
+  background: var(--navbar-bg-solid);
+  box-shadow: var(--shadow-md);
+  border-bottom-color: var(--border-color-light);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ============================================
+   Brand Section (Left)
+   ============================================ */
+
+.navbar-brand {
+  flex-shrink: 0;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.brand-link:hover {
+  opacity: 0.85;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, #7C4DFF 100%);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(79, 107, 255, 0.3);
+}
+
+.brand-name {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 768px) {
+  .brand-name {
+    display: none;
+  }
+  
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}
+
+/* ============================================
+   Navigation Links (Center)
+   ============================================ */
 
 .navbar-nav {
   display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  align-items: center;
+  gap: 4px;
 }
 
-.navbar-nav li {
-  margin-left: 1rem;
-}
-
-.navbar-nav a {
-  color: white;
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  border-radius: var(--border-radius);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  position: relative;
 }
 
-.navbar-nav a:hover {
-  background-color: #555;
+.nav-link:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.03);
 }
 
-.logout-btn {
-  background-color: #dc3545;
-  color: white;
+.nav-link-active {
+  color: var(--primary-blue);
+  background: var(--primary-blue-light);
+}
+
+.nav-link-active:hover {
+  color: var(--primary-blue);
+  background: var(--primary-blue-light);
+}
+
+.nav-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-label {
+  letter-spacing: -0.01em;
+}
+
+/* Active indicator dot */
+.nav-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--primary-blue);
+  border-radius: var(--border-radius-full);
+}
+
+@media (max-width: 992px) {
+  .nav-label {
+    display: none;
+  }
+  
+  .nav-link {
+    padding: 10px 12px;
+  }
+  
+  .nav-link-active::after {
+    bottom: 4px;
+    width: 3px;
+    height: 3px;
+  }
+}
+
+/* ============================================
+   Actions Section (Right)
+   ============================================ */
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Notification Bell */
+.notification-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  background: transparent;
+  border-radius: var(--border-radius);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: all var(--transition-fast);
 }
 
-.logout-btn:hover {
-  background-color: #c82333;
+.notification-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+
+.notification-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: #FF4757;
+  color: white;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+}
+
+/* User Dropdown */
+.user-dropdown {
+  position: relative;
+}
+
+.user-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  border: none;
+  background: transparent;
+  border-radius: var(--border-radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.user-avatar-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--accent-green) 0%, #00A67E 100%);
+  border-radius: var(--border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 200, 150, 0.3);
+  transition: transform var(--transition-fast);
+}
+
+.user-avatar-btn:hover .user-avatar {
+  transform: scale(1.05);
+}
+
+.user-name {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .user-name {
+    display: none;
+  }
+  
+  .user-avatar-btn {
+    padding: 6px;
+  }
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 280px;
+  background: var(--dropdown-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-dropdown);
+  border: 1px solid var(--border-color-light);
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease;
+  transform-origin: top right;
+  z-index: 1001;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-header {
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(79, 107, 255, 0.03) 0%, rgba(0, 200, 150, 0.03) 100%);
+}
+
+.dropdown-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dropdown-avatar {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, var(--accent-green) 0%, #00A67E 100%);
+  border-radius: var(--border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dropdown-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-user-name {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dropdown-user-email {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text-primary);
+}
+
+.dropdown-item svg {
+  font-size: 18px;
+}
+
+.dropdown-item-logout {
+  color: #FF4757;
+}
+
+.dropdown-item-logout:hover {
+  background: rgba(255, 71, 87, 0.08);
+  color: #FF4757;
+}
+
+/* ============================================
+   Mobile Menu Toggle
+   ============================================ */
+
+.mobile-menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: var(--border-radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 24px;
+  transition: all var(--transition-fast);
+}
+
+.mobile-menu-toggle:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .navbar-nav {
+    display: none;
+  }
+}
+
+/* ============================================
+   Mobile Navigation Menu
+   ============================================ */
+
+.mobile-nav {
+  display: none;
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--mobile-nav-bg);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all var(--transition-normal);
+}
+
+.mobile-nav-open {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-nav-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link-active {
+  color: var(--primary-blue);
+  background: var(--primary-blue-light);
+}
+
+.mobile-nav-link svg {
+  font-size: 22px;
+}
+
+.mobile-nav-link-logout {
+  color: #FF4757;
+}
+
+.mobile-nav-link-logout:hover {
+  background: rgba(255, 71, 87, 0.08);
+}
+
+.mobile-nav-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 8px 0;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   Animation Utilities
+   ============================================ */
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.notification-badge {
+  animation: pulse 2s infinite;
+}
+
+/* ============================================
+   Focus States (Accessibility)
+   ============================================ */
+
+.nav-link:focus-visible,
+.notification-btn:focus-visible,
+.user-avatar-btn:focus-visible,
+.mobile-menu-toggle:focus-visible,
+.dropdown-item:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Dark Mode Support (Optional)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --navbar-bg: rgba(26, 26, 46, 0.85);
+    --navbar-bg-solid: #1A1A2E;
+    --dropdown-bg: #1A1A2E;
+    --mobile-nav-bg: rgba(26, 26, 46, 0.98);
+    --text-primary: #F9FAFB;
+    --text-secondary: #D1D5DB;
+    --text-muted: #9CA3AF;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-color-light: rgba(255, 255, 255, 0.1);
+  }
+  
+  .nav-link:hover,
+  .user-avatar-btn:hover,
+  .notification-btn:hover,
+  .mobile-menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .dropdown-item:hover,
+  .mobile-nav-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
 }

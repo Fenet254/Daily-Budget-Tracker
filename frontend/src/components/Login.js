@@ -4,6 +4,7 @@ import { AuthContext } from '../AuthContext';
 import './Auth.css';
 
 const Login = () => {
+ 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const { login } = useContext(AuthContext);
@@ -16,7 +17,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const success = await login(formData.email, formData.password);
+    const success = await login(formData);
     if (success) {
       navigate('/');
     } else {
