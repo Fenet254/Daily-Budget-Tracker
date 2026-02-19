@@ -23,21 +23,25 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="App">
-<AuthContext.Consumer>
-  {({ user }) => user && <Navbar />}
-</AuthContext.Consumer>
-<AuthContext.Consumer>
-  {({ user }) => user && <Footer />}
-</AuthContext.Consumer>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-            <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-            <Route path="/sms-import" element={<ProtectedRoute><SMSImport /></ProtectedRoute>} />
-          </Routes>
+          <AuthContext.Consumer>
+            {({ user }) => user && <Navbar />}
+          </AuthContext.Consumer>
+          
+          <div className="main-content">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+              <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              <Route path="/sms-import" element={<ProtectedRoute><SMSImport /></ProtectedRoute>} />
+            </Routes>
+          </div>
+          
+          <AuthContext.Consumer>
+            {({ user }) => user && <Footer />}
+          </AuthContext.Consumer>
         </div>
       </Router>
     </AuthProvider>

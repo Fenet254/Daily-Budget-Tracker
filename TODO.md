@@ -1,16 +1,16 @@
-- [x] Start backend server
-- [ ] Set up React Router and basic app structure
-- [ ] Create AuthContext for authentication
-- [ ] Create components (Login, Register, Dashboard, Transactions, Budgets, Reports, SMSImport, Navbar)
-- [ ] Add CSS styling for all components
-- [ ] Start frontend dev server
-- [ ] Test the application
-=======
-- [x] Install frontend dependencies (axios, react-router-dom, recharts)
-- [x] Start backend server
-- [x] Set up React Router and basic app structure
-- [x] Create AuthContext for authentication
-- [x] Create components (Login, Register, Dashboard, Transactions, Budgets, Reports, SMSImport, Navbar)
-- [x] Add CSS styling for all components
-- [x] Start frontend dev server
-- [x] Test the application (Fixed registration error, added beautiful gradient background)
+# TODO - Login & Sign Up Redesign
+
+## Task: Design Login and Sign Up pages for Daily Budget Tracker (Evangadi-style split layout)
+
+### Completed:
+- [x] Analyze existing codebase
+- [x] Create detailed plan
+- [x] Get user confirmation
+- [x] Update Auth.css with two-column split layout styles
+- [x] Update Login.js with new design (logo, hero section, password toggle, remember me, dark mode toggle)
+- [x] Update Register.js with new design (first name, last name, terms checkbox, password strength indicator, hero section)
+
+### Implementation Summary:
+- **Auth.css**: Complete two-column split layout with responsive design, dark/light mode support, animations, and fintech-themed styling
+- **Login.js**: Full Evangadi-style design with left form panel and right hero section
+- **Register.js**: Full Evangadi-style design with first name, last name, password strength indicator
