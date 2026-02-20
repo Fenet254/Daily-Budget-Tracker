@@ -290,9 +290,9 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Footer */}
+{/* Footer */}
         <footer className="auth-footer">
-          <p>&copy; 2024 Daily Budget Tracker. All rights reserved.</p>
+          <p>&copy; 2026 Daily Budget Tracker. All rights reserved.</p>
           <div className="auth-footer-links">
             <a href="/privacy">Privacy Policy</a>
             <span>•</span>
@@ -303,13 +303,13 @@ const Login = () => {
         </footer>
       </div>
 
-      {/* Right Column - Hero Section */}
+{/* Right Column - Hero Section */}
       <div className="auth-hero-section">
-        {/* Background Image */}
+        {/* Background Image - Budgeting App Theme */}
         <div className="hero-background-image">
           <img 
-            src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80" 
-            alt="Budget tracking dashboard" 
+            src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&q=80" 
+            alt="Person using budgeting app on phone" 
           />
           <div className="hero-overlay"></div>
         </div>

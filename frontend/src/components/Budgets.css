@@ -1,8 +1,4 @@
-/* ============================================
-   Budgets Page - Premium Fintech Styling
-   ============================================ */
 
-/* Page Container */
 .budgets-page {
   min-height: 100vh;
   padding: var(--space-lg);
@@ -14,9 +10,6 @@
   margin: 0 auto;
 }
 
-/* ============================================
-   Header Section
-   ============================================ */
 .budgets-header {
   display: flex;
   justify-content: space-between;

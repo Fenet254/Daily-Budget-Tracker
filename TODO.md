@@ -1,16 +1,29 @@
-# TODO - Login & Sign Up Redesign
+# Daily Budget Tracker - UI Improvements TODO
 
-## Task: Design Login and Sign Up pages for Daily Budget Tracker (Evangadi-style split layout)
+## Phase 1: Image & Hero Section ✅
+- [x] 1.1 Replace hero image with budgeting app themed image
+- [x] 1.2 Add semi-transparent overlay on hero image for text readability
 
-### Completed:
-- [x] Analyze existing codebase
-- [x] Create detailed plan
-- [x] Get user confirmation
-- [x] Update Auth.css with two-column split layout styles
-- [x] Update Login.js with new design (logo, hero section, password toggle, remember me, dark mode toggle)
-- [x] Update Register.js with new design (first name, last name, terms checkbox, password strength indicator, hero section)
+## Phase 2: Text Contrast & Typography ✅
+- [x] 2.1 Improve text contrast in Auth.css (dark text on light backgrounds)
+- [x] 2.2 Make headings bold and dark (#1E293B)
+- [x] 2.3 Highlight CTAs in bright color (orange gradient)
 
-### Implementation Summary:
-- **Auth.css**: Complete two-column split layout with responsive design, dark/light mode support, animations, and fintech-themed styling
-- **Login.js**: Full Evangadi-style design with left form panel and right hero section
-- **Register.js**: Full Evangadi-style design with first name, last name, password strength indicator
+## Phase 3: Footer ✅
+- [x] 3.1 Add consistent footer to Register page
+- [x] 3.2 Update copyright year to 2026
+
+## Phase 4: OAuth Integration
+- [ ] 4.1 Add OAuth frontend handlers in Login.js
+- [ ] 4.2 Add OAuth frontend handlers in Register.js
+- [ ] 4.3 Create backend OAuth routes (Google, GitHub)
+- Note: Full OAuth requires Google Cloud Console and GitHub OAuth app setup
+
+## Phase 5: Layout Fixes ✅
+- [x] 5.1 Fix login section centering with flex/grid
+- [x] 5.2 Make page dynamic with responsive layout
+- [x] 5.3 Remove extra padding/margin from global CSS
+
+## Implementation Status
+- [x] Completed: Phases 1, 2, 3, 5
+- [ ] In Progress: Phase 4 (OAuth)

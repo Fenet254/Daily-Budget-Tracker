@@ -17,7 +17,6 @@ import {
 } from 'react-icons/gi';
 import './Dashboard.css';
 
-// Category icons mapping
 const getCategoryIcon = (category) => {
   const categoryLower = category?.toLowerCase() || '';
   const icons = {

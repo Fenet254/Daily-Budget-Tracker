@@ -412,10 +412,31 @@ const Register = () => {
             <Link to="/login">Login</Link>
           </p>
         </div>
+
+        {/* Footer */}
+        <footer className="auth-footer">
+          <p>&copy; 2026 Daily Budget Tracker. All rights reserved.</p>
+          <div className="auth-footer-links">
+            <a href="/privacy">Privacy Policy</a>
+            <span>•</span>
+            <a href="/terms">Terms of Service</a>
+            <span>•</span>
+            <a href="/contact">Contact</a>
+          </div>
+        </footer>
       </div>
 
       {/* Right Column - Hero Section */}
       <div className="auth-hero-section">
+        {/* Background Image - Budgeting App Theme */}
+        <div className="hero-background-image">
+          <img 
+            src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&q=80" 
+            alt="Person using budgeting app on phone" 
+          />
+          <div className="hero-overlay"></div>
+        </div>
+
         {/* Floating Elements */}
         <div className="hero-floating-elements">
           <div className="floating-icon">
