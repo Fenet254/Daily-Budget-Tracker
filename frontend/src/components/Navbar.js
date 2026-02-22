@@ -12,7 +12,8 @@ import {
   FiLogOut, 
   FiMenu, 
   FiX,
-  FiTrendingUp
+  FiTrendingUp,
+  FiMessageCircle
 } from 'react-icons/fi';
 import './Navbar.css';
 
@@ -50,11 +51,12 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const navLinks = [
+const navLinks = [
     { path: '/', label: 'Dashboard', icon: <FiGrid /> },
     { path: '/transactions', label: 'Transactions', icon: <FiList /> },
     { path: '/budgets', label: 'Budgets', icon: <FiPieChart /> },
     { path: '/reports', label: 'Reports', icon: <FiBarChart /> },
+    { path: '/sms-import', label: 'SMS Import', icon: <FiMessageCircle /> },
   ];
 
   const isActive = (path) => location.pathname === path;

@@ -98,17 +98,41 @@ const Transactions = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate amount
+    const parsedAmount = parseFloat(formData.amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      showToast('Please enter a valid amount', 'error');
+      return;
+    }
+    
+    // Validate category
+    if (!formData.category) {
+      showToast('Please select a category', 'error');
+      return;
+    }
+    
+    // Prepare data with proper type conversion
+    const transactionData = {
+      type: formData.type,
+      amount: parsedAmount, // Convert to number
+      category: formData.category,
+      description: formData.description || '',
+      date: formData.date || new Date().toISOString().split('T')[0]
+    };
+    
     try {
       if (editing) {
-        await axios.put(`http://localhost:5000/transactions/${editing}`, formData, {
+        await axios.put(`http://localhost:5000/transactions/${editing}`, transactionData, {
           headers: getAuthHeader()
         });
         showToast('Transaction updated successfully!', 'success');
         setEditing(null);
       } else {
-        await axios.post('http://localhost:5000/transactions', formData, {
+        const response = await axios.post('http://localhost:5000/transactions', transactionData, {
           headers: getAuthHeader()
         });
+        console.log('Transaction saved:', response.data);
         showToast('Transaction added successfully!', 'success');
       }
       setFormData({ 
@@ -121,7 +145,8 @@ const Transactions = () => {
       fetchTransactions();
     } catch (error) {
       console.error('Error saving transaction:', error);
-      showToast('Failed to save transaction', 'error');
+      const errorMessage = error.response?.data?.message || 'Failed to save transaction';
+      showToast(errorMessage, 'error');
     }
   };
 

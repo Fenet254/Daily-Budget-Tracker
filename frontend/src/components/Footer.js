@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import './Footer.css';
 
 const Footer = () => {
-  const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState('en');
-
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-    document.body.classList.toggle('dark-mode', !darkMode);
-  };
+  const [darkMode] = useState(true);
 
   const currentYear = new Date().getFullYear();
 
@@ -21,8 +16,8 @@ const Footer = () => {
             <span className="logo-icon">💰</span>
             <span className="logo-text">Daily Budget Tracker</span>
           </div>
-          <p className="footer-tagline">Track your future.</p>
- money. Shape your        </div>
+          <p className="footer-tagline">Track your money. Shape your future.</p>
+        </div>
 
         {/* Center Section - Navigation Links */}
         <div className="footer-section footer-center">
@@ -69,14 +64,6 @@ const Footer = () => {
                 <option value="de">🇩🇪 DE</option>
               </select>
             </div>
-
-            <button 
-              className="theme-toggle" 
-              onClick={toggleTheme}
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
           </div>
         </div>
       </div>

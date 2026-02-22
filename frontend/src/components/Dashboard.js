@@ -8,7 +8,7 @@ import {
 import { 
   FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, 
   FiPieChart, FiSavings, FiPlus, FiFileText, FiTarget, FiDownload,
-  FiSun, FiMoon, FiEdit2, FiTrash2, FiArrowRight, FiFilter,
+  FiEdit2, FiTrash2, FiArrowRight, FiFilter,
   FiShoppingCart, FiCoffee, FiHome, FiZap, FiMusic, FiTruck,
   FiAlertCircle, FiCheckCircle, FiInfo, FiX
 } from 'react-icons/fi';
@@ -81,7 +81,6 @@ const AnimatedCounter = ({ value, prefix = '' }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState('light');
   const [dateRange, setDateRange] = useState('today');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
@@ -98,10 +97,8 @@ const Dashboard = () => {
     fetchRecentTransactions();
     fetchChartData();
     
-    // Check saved theme
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    // Always set light theme
+    document.documentElement.setAttribute('data-theme', 'light');
   }, [dateRange, selectedCategory]);
 
   // Calculate date range
@@ -232,14 +229,6 @@ const Dashboard = () => {
     setInsights(newInsights);
   };
 
-  // Toggle theme
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-  };
-
   // Show toast notification
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -326,10 +315,6 @@ const Dashboard = () => {
                 This Month
               </button>
             </div>
-            
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-              {theme === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
-            </button>
           </div>
         </header>
 

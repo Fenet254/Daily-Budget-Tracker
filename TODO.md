@@ -1,29 +1,47 @@
-# Daily Budget Tracker - UI Improvements TODO
+# TODO: Settings Design and Remove Comments
 
-## Phase 1: Image & Hero Section ✅
-- [x] 1.1 Replace hero image with budgeting app themed image
-- [x] 1.2 Add semi-transparent overlay on hero image for text readability
+## Settings Component
+- [ ] Create Settings.js component
+- [ ] Create Settings.css styling
+- [ ] Add Settings route to App.js
+- [ ] Update Navbar to link to Settings (already has link)
 
-## Phase 2: Text Contrast & Typography ✅
-- [x] 2.1 Improve text contrast in Auth.css (dark text on light backgrounds)
-- [x] 2.2 Make headings bold and dark (#1E293B)
-- [x] 2.3 Highlight CTAs in bright color (orange gradient)
+## Remove Comments from Files
+### Frontend Components
+- [ ] Login.js
+- [ ] Register.js
+- [ ] Dashboard.js
+- [ ] Transactions.js
+- [ ] Budgets.js
+- [ ] Reports.js
+- [ ] SMSImport.js
+- [ ] Profile.js
+- [ ] Navbar.js
+- [ ] Footer.js
 
-## Phase 3: Footer ✅
-- [x] 3.1 Add consistent footer to Register page
-- [x] 3.2 Update copyright year to 2026
+### Frontend CSS
+- [ ] App.css
+- [ ] Auth.css
+- [ ] Dashboard.css
+- [ ] Transactions.css
+- [ ] Budgets.css
+- [ ] Reports.css
+- [ ] SMSImport.css
+- [ ] Profile.css
+- [ ] Navbar.css
+- [ ] Footer.css
 
-## Phase 4: OAuth Integration
-- [ ] 4.1 Add OAuth frontend handlers in Login.js
-- [ ] 4.2 Add OAuth frontend handlers in Register.js
-- [ ] 4.3 Create backend OAuth routes (Google, GitHub)
-- Note: Full OAuth requires Google Cloud Console and GitHub OAuth app setup
-
-## Phase 5: Layout Fixes ✅
-- [x] 5.1 Fix login section centering with flex/grid
-- [x] 5.2 Make page dynamic with responsive layout
-- [x] 5.3 Remove extra padding/margin from global CSS
-
-## Implementation Status
-- [x] Completed: Phases 1, 2, 3, 5
-- [ ] In Progress: Phase 4 (OAuth)
+### Backend Files
+- [ ] server.js
+- [ ] auth.js routes
+- [ ] transactions.js routes
+- [ ] budgets.js routes
+- [ ] reports.js routes
+- [ ] sms.js routes
+- [ ] User.js model
+- [ ] Transaction.js model
+- [ ] Budget.js model
+- [ ] Category.js model
+- [ ] auth.js middleware
+- [ ] database.js config
+- [ ] smsParser.js utils

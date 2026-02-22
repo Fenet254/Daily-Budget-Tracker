@@ -30,6 +30,14 @@ const budgetSchema = new mongoose.Schema({
   endDate: {
     type: Date,
   },
+  color: {
+    type: String,
+    default: '#3B82F6',
+  },
+  note: {
+    type: String,
+    default: '',
+  },
 });
 
 module.exports = mongoose.model('Budget', budgetSchema);

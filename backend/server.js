@@ -29,12 +29,25 @@ require('./models/Transaction');
 require('./models/Category');
 require('./models/Budget');
 
+// Import routes
 const authRoutes = require('./routes/auth');
+const transactionRoutes = require('./routes/transactions');
+const budgetRoutes = require('./routes/budgets');
+const reportRoutes = require('./routes/reports');
+const smsRoutes = require('./routes/sms');
+
 app.get('/', (req, res) => {
   res.send('Daily Budget Tracker API');
 });
 
+// Register routes
 app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/sms', smsRoutes);
+
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });

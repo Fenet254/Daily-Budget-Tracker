@@ -1,33 +1,26 @@
 /* Footer Styles - Professional SaaS Style */
+/* Default Dark Mode */
 
 /* Import Inter Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* CSS Variables */
+/* CSS Variables - Default Dark Mode */
 :root {
-  --footer-bg: #f8f9fa;
-  --footer-text: #6b7280;
-  --footer-text-hover: #1f2937;
-  --footer-border: #e5e7eb;
-  --footer-accent: #3b82f6;
-  --footer-accent-hover: #2563eb;
-  --footer-dark-bg: #1f2937;
-  --footer-dark-text: #9ca3af;
-  --footer-dark-border: #374151;
-}
-
-/* Dark Mode Variables */
-body.dark-mode {
   --footer-bg: #111827;
   --footer-text: #9ca3af;
   --footer-text-hover: #f3f4f6;
   --footer-border: #374151;
+  --footer-accent: #3b82f6;
+  --footer-accent-hover: #2563eb;
+  --footer-dark-bg: #111827;
+  --footer-dark-text: #9ca3af;
+  --footer-dark-border: #374151;
 }
 
 /* Footer Base */
 .footer {
-  background: var(--footer-bg);
-  border-top: 1px solid var(--footer-border);
+  background: var(--footer-dark-bg);
+  border-top: 1px solid var(--footer-dark-border);
   padding: 2rem 0 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   transition: background var(--transition-normal), border-color var(--transition-normal);
@@ -88,7 +81,7 @@ body.dark-mode {
 .logo-text {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--footer-text-hover);
+  color: var(--footer-dark-text);
   transition: color var(--transition-normal);
 }
 
@@ -98,7 +91,8 @@ body.dark-mode {
 
 .footer-tagline {
   font-size: 0.875rem;
-  color: var(--footer-text);
+  font-weight: 700;
+  color: var(--footer-dark-text);
   margin: 0.25rem 0 0;
   transition: color var(--transition-normal);
 }
@@ -123,8 +117,8 @@ body.dark-mode {
 
 .footer-link {
   font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--footer-text);
+  font-weight: 700;
+  color: var(--footer-dark-text);
   text-decoration: none;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
@@ -133,7 +127,7 @@ body.dark-mode {
 
 .footer-link:hover {
   color: var(--footer-text-hover);
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.2);
 }
 
 .footer.dark .footer-link {
@@ -146,7 +140,7 @@ body.dark-mode {
 }
 
 .footer-divider {
-  color: var(--footer-border);
+  color: var(--footer-dark-border);
   font-size: 0.875rem;
 }
 
@@ -174,7 +168,7 @@ body.dark-mode {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  color: var(--footer-text);
+  color: var(--footer-dark-text);
   background: transparent;
   transition: all var(--transition-fast);
   text-decoration: none;
@@ -182,7 +176,7 @@ body.dark-mode {
 
 .social-icon:hover {
   color: var(--footer-accent);
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.2);
   transform: translateY(-2px);
 }
 
@@ -208,15 +202,15 @@ body.dark-mode {
 .language-select {
   appearance: none;
   background: transparent;
-  border: 1px solid var(--footer-border);
+  border: 1px solid var(--footer-dark-border);
   border-radius: 6px;
   padding: 0.5rem 2rem 0.5rem 0.75rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--footer-text);
+  color: var(--footer-dark-text);
   cursor: pointer;
   transition: all var(--transition-fast);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 1rem;
@@ -239,47 +233,19 @@ body.dark-mode {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
 }
 
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--footer-border);
-  border-radius: 8px;
-  background: transparent;
-  font-size: 1.125rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.theme-toggle:hover {
-  border-color: var(--footer-accent);
-  background: rgba(59, 130, 246, 0.1);
-  transform: translateY(-2px);
-}
-
-.footer.dark .theme-toggle {
-  border-color: var(--footer-dark-border);
-}
-
-.footer.dark .theme-toggle:hover {
-  border-color: var(--footer-accent);
-  background: rgba(59, 130, 246, 0.2);
-}
-
 /* Copyright Bar */
 .footer-copyright {
   margin-top: 2rem;
   padding: 1rem 2rem;
-  border-top: 1px solid var(--footer-border);
+  border-top: 1px solid var(--footer-dark-border);
   text-align: center;
 }
 
 .footer-copyright p {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--footer-text);
+  font-weight: 600;
+  color: var(--footer-dark-text);
   transition: color var(--transition-normal);
 }
 
@@ -367,14 +333,12 @@ body.dark-mode {
 
 /* Micro-interactions */
 .social-icon,
-.theme-toggle,
 .language-select {
   position: relative;
   overflow: hidden;
 }
 
-.social-icon::before,
-.theme-toggle::before {
+.social-icon::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -387,8 +351,7 @@ body.dark-mode {
   transition: width 0.4s ease, height 0.4s ease;
 }
 
-.social-icon:active::before,
-.theme-toggle:active::before {
+.social-icon:active::before {
   width: 100px;
   height: 100px;
 }

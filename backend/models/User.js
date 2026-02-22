@@ -24,6 +24,56 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  // New Profile Fields
+  phone: {
+    type: String,
+    trim: true,
+  },
+  bio: {
+    type: String,
+    maxlength: 500,
+    trim: true,
+  },
+  profilePhoto: {
+    type: String,
+    default: '',
+  },
+  address: {
+    street: { type: String, trim: true },
+    city: { type: String, trim: true },
+    state: { type: String, trim: true },
+    zipCode: { type: String, trim: true },
+    country: { type: String, trim: true },
+  },
+  dateOfBirth: {
+    type: Date,
+  },
+  preferences: {
+    theme: {
+      type: String,
+      enum: ['light', 'dark', 'system'],
+      default: 'system',
+    },
+    currency: {
+      type: String,
+      default: 'ETB',
+    },
+    notifications: {
+      email: { type: Boolean, default: true },
+      push: { type: Boolean, default: true },
+      sms: { type: Boolean, default: false },
+    },
+    language: {
+      type: String,
+      default: 'en',
+    },
+  },
+  // Social links
+  socialLinks: {
+    twitter: { type: String, trim: true },
+    linkedin: { type: String, trim: true },
+    github: { type: String, trim: true },
+  },
 }, {
   timestamps: true // Adds createdAt and updatedAt automatically
 });

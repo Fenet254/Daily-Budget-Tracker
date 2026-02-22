@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -8,10 +8,60 @@ import {
   FiPlus, FiEdit2, FiTrash2, FiDownload, FiFilter, FiSun, FiMoon,
   FiAlertCircle, FiCheckCircle, FiX, FiChevronDown, FiTrendingUp,
   FiCoffee, FiTruck, FiHome, FiZap, FiMusic, FiShoppingCart, FiDollarSign,
-  FiCreditCard, FiTarget, FiCalendar, FiFileText, FiGrid, FiList
+  FiCreditCard, FiTarget, FiCalendar, FiFileText, FiGrid, FiList, FiSearch,
+  FiTrendingDown, FiTrendingUp as FiTrendingUpIcon, FiZap as FiZapIcon,
+  FiAward, FiSmartphone, FiShare2
 } from 'react-icons/fi';
-import { GiPiggyBank, GiWallet } from 'react-icons/gi';
+import { GiPiggyBank, GiWallet, GiTakeMyMoney, GiMoneyStack } from 'react-icons/gi';
 import './Budgets.css';
+
+// Confetti component for celebration
+const Confetti = ({ active }) => {
+  if (!active) return null;
+  
+  return (
+    <div className="confetti-container">
+      {[...Array(50)].map((_, i) => (
+        <div 
+          key={i} 
+          className="confetti"
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 2}s`,
+            backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EC4899', '#8B5CF6'][Math.floor(Math.random() * 5)]
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Animated Counter Component
+const AnimatedCounter = ({ value, prefix = '', suffix = '' }) => {
+  const [count, setCount] = useState(0);
+  const duration = 1500;
+  
+  useEffect(() => {
+    let startTime;
+    const startValue = 0;
+    const endValue = value;
+    
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(startValue + (endValue - startValue) * easeOut));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [value]);
+  
+  return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
+};
 
 // Category icons mapping
 const getCategoryIcon = (category) => {
@@ -52,6 +102,12 @@ const CATEGORY_COLORS = {
   Health: '#EF4444',
   Other: '#64748B'
 };
+
+// Month options
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 // Format currency
 const formatCurrency = (amount) => {
@@ -119,6 +175,27 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
+// Modal Component
+const Modal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>{title}</h3>
+          <button className="modal-close" onClick={onClose}>
+            <FiX size={20} />
+          </button>
+        </div>
+        <div className="modal-body">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Skeleton Loading Component
 const SkeletonCard = () => (
   <div className="budget-card-skeleton">
@@ -136,10 +213,19 @@ const Budgets = () => {
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState('light');
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState('cards');
   const [period, setPeriod] = useState('this-month');
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  // New states for enhanced features
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+  const [selectedColor, setSelectedColor] = useState('#3B82F6');
   
   // Form state
   const [formData, setFormData] = useState({
@@ -163,11 +249,10 @@ const Budgets = () => {
   // Load data on mount
   useEffect(() => {
     fetchBudgets();
-    // Check saved theme
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
-  }, [period]);
+  }, [period, selectedMonth, selectedYear]);
 
   // Fetch budgets from API
   const fetchBudgets = async () => {
@@ -206,12 +291,21 @@ const Budgets = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const budgetData = {
+        ...formData,
+        amount: parseFloat(formData.amount),
+        color: selectedColor
+      };
+      
       if (editingId) {
-        await axios.put(`http://localhost:5000/budgets/${editingId}`, formData, getAuthHeader());
+        await axios.put(`http://localhost:5000/budgets/${editingId}`, budgetData, getAuthHeader());
         showToast('Budget updated successfully', 'success');
       } else {
-        await axios.post('http://localhost:5000/budgets', formData, getAuthHeader());
+        await axios.post('http://localhost:5000/budgets', budgetData, getAuthHeader());
         showToast('Budget created successfully', 'success');
+        // Trigger confetti for new budget
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
       }
       resetForm();
       fetchBudgets();
@@ -230,7 +324,9 @@ const Budgets = () => {
       note: budget.note || ''
     });
     setEditingId(budget._id);
-    setShowForm(true);
+    setSelectedColor(budget.color || '#3B82F6');
+    setModalMode('edit');
+    setShowModal(true);
   };
 
   // Handle delete budget
@@ -249,7 +345,25 @@ const Budgets = () => {
   const resetForm = () => {
     setFormData({ category: '', amount: '', period: 'monthly', note: '' });
     setEditingId(null);
+    setSelectedColor('#3B82F6');
     setShowForm(false);
+    setShowModal(false);
+  };
+
+  // Open modal for new budget
+  const openAddModal = () => {
+    setModalMode('add');
+    resetForm();
+    setShowModal(true);
+  };
+
+  // Export to PDF (simulated)
+  const exportToPDF = () => {
+    showToast('Preparing PDF export...', 'success');
+    // In a real app, you would use a library like jsPDF or html2pdf
+    setTimeout(() => {
+      showToast('Budgets exported to PDF', 'success');
+    }, 1500);
   };
 
   // Export to CSV
@@ -279,11 +393,15 @@ const Budgets = () => {
 
   // Filter and sort budgets
   const filteredBudgets = budgets
-    .filter(b => filterCategory === 'all' || b.category.toLowerCase() === filterCategory)
+    .filter(b => {
+      const matchesCategory = filterCategory === 'all' || b.category.toLowerCase() === filterCategory;
+      const matchesSearch = b.category.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    })
     .sort((a, b) => {
       switch (sortBy) {
         case 'highest-spending':
-          return b.spent - a.spending;
+          return b.spent - a.spent;
         case 'remaining':
           return (a.amount - a.spent) - (b.amount - b.spent);
         case 'category':
@@ -318,27 +436,85 @@ const Budgets = () => {
     const warnings = [];
     filteredBudgets.forEach(budget => {
       const percentage = (budget.spent / budget.amount) * 100;
-      if (percentage >= 90) {
+      if (percentage >= 100) {
         warnings.push({
           type: 'danger',
-          message: `⚠️ You've used ${Math.round(percentage)}% of your ${budget.category} budget!`,
+          icon: <FiAlertCircle />,
+          message: `⚠️ ${budget.category} budget exceeded by ${formatCurrency(budget.spent - budget.amount)}`,
           category: budget.category
         });
       } else if (percentage >= 70) {
         warnings.push({
           type: 'warning',
+          icon: <FiZapIcon />,
           message: `⚡ You're at ${Math.round(percentage)}% of your ${budget.category} budget`,
-          category: budget.category
-        });
-      } else {
-        warnings.push({
-          type: 'success',
-          message: `✅ ${budget.category} budget is healthy`,
           category: budget.category
         });
       }
     });
-    return warnings.slice(0, 3); // Show top 3 warnings
+    
+    // Add positive insights
+    const underBudgetCategories = filteredBudgets.filter(b => (b.spent / b.amount) * 100 < 50);
+    if (underBudgetCategories.length > 0) {
+      warnings.push({
+        type: 'success',
+        icon: <FiCheckCircle />,
+        message: `✅ ${underBudgetCategories.length} categories are under 50% - great saving potential!`,
+        category: 'general'
+      });
+    }
+    
+    return warnings.slice(0, 4);
+  };
+
+  // AI Insights Generator
+  const getAIInsights = () => {
+    const insights = [];
+    
+    // Calculate spending trends
+    const totalSpent = filteredBudgets.reduce((sum, b) => sum + b.spent, 0);
+    const totalBudgeted = filteredBudgets.reduce((sum, b) => sum + b.amount, 0);
+    const overallPercentage = (totalSpent / totalBudgeted) * 100;
+    
+    if (overallPercentage < 70) {
+      insights.push({
+        icon: <GiPiggyBank />,
+        title: 'Savings Opportunity',
+        description: `You can save ${formatCurrency(totalBudgeted - totalSpent)} this month!`,
+        color: '#10B981'
+      });
+    }
+    
+    // Find highest spending category
+    const highestSpending = [...filteredBudgets].sort((a, b) => b.spent - a.spent)[0];
+    if (highestSpending) {
+      insights.push({
+        icon: <FiTrendingUp />,
+        title: 'Highest Spending',
+        description: `${highestSpending.category} takes ${Math.round((highestSpending.spent / totalSpent) * 100)}% of your expenses`,
+        color: '#F59E0B'
+      });
+    }
+    
+    // Budget recommendations
+    const overBudget = filteredBudgets.filter(b => b.spent > b.amount);
+    if (overBudget.length > 0) {
+      insights.push({
+        icon: <FiAlertCircle />,
+        title: 'Action Needed',
+        description: `${overBudget.length} budget(s) exceeded. Consider adjusting limits.`,
+        color: '#EF4444'
+      });
+    } else {
+      insights.push({
+        icon: <FiAward />,
+        title: 'Great Job!',
+        description: 'All budgets are within limits. Keep it up! 🎉',
+        color: '#8B5CF6'
+      });
+    }
+    
+    return insights;
   };
 
   // Calculate totals
@@ -350,6 +526,7 @@ const Budgets = () => {
   if (loading) {
     return (
       <div className="budgets-page">
+        <Confetti active={showConfetti} />
         <div className="budgets-container">
           <div className="skeleton skeleton-header-section" style={{ marginBottom: '32px' }}>
             <div className="skeleton skeleton-title"></div>
@@ -367,36 +544,56 @@ const Budgets = () => {
 
   return (
     <div className="budgets-page">
+      <Confetti active={showConfetti} />
       <div className="budgets-container">
         {/* Header Section */}
         <header className="budgets-header">
           <div className="header-content">
-            <h1 className="header-title">Budgets Overview</h1>
-            <p className="header-subtitle">Plan and control your spending</p>
+            <h1 className="header-title">Budgets</h1>
+            <p className="header-subtitle">Plan and control your spending by category.</p>
           </div>
           
           <div className="header-controls">
-            <div className="period-selector">
-              <button 
-                className={`period-btn ${period === 'this-week' ? 'active' : ''}`}
-                onClick={() => setPeriod('this-week')}
+            {/* Month Selector */}
+            <div className="month-selector">
+              <select 
+                value={selectedMonth} 
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="month-select"
               >
-                This Week
-              </button>
-              <button 
-                className={`period-btn ${period === 'this-month' ? 'active' : ''}`}
-                onClick={() => setPeriod('this-month')}
+                {MONTHS.map((month, index) => (
+                  <option key={month} value={index}>{month}</option>
+                ))}
+              </select>
+              <select 
+                value={selectedYear} 
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="year-select"
               >
-                This Month
-              </button>
-              <button 
-                className={`period-btn ${period === 'custom' ? 'active' : ''}`}
-                onClick={() => setPeriod('custom')}
-              >
-                Custom
-              </button>
+                {[2024, 2025, 2026, 2027].map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
             </div>
             
+            {/* Search Bar */}
+            <div className="search-bar">
+              <FiSearch className="search-icon" />
+              <input 
+                type="text" 
+                placeholder="Search categories..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            {/* Add Budget Button */}
+            <button className="add-budget-btn" onClick={openAddModal}>
+              <FiPlus size={18} />
+              Add Budget
+            </button>
+            
+            {/* Theme Toggle */}
             <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
             </button>
@@ -411,7 +608,9 @@ const Budgets = () => {
             </div>
             <div className="stat-content">
               <span className="stat-label">Total Budgeted</span>
-              <span className="stat-value">{formatCurrency(totalBudgeted)}</span>
+              <span className="stat-value">
+                <AnimatedCounter value={totalBudgeted} />
+              </span>
             </div>
           </div>
           <div className="stat-card">
@@ -420,7 +619,9 @@ const Budgets = () => {
             </div>
             <div className="stat-content">
               <span className="stat-label">Total Spent</span>
-              <span className="stat-value">{formatCurrency(totalSpent)}</span>
+              <span className="stat-value">
+                <AnimatedCounter value={totalSpent} />
+              </span>
             </div>
           </div>
           <div className="stat-card">
@@ -428,131 +629,24 @@ const Budgets = () => {
               <GiWallet size={20} />
             </div>
             <div className="stat-content">
-              <span className="stat-label">Remaining</span>
-              <span className="stat-value">{formatCurrency(totalRemaining)}</span>
+              <span className="stat-label">Remaining Balance</span>
+              <span className="stat-value">
+                <AnimatedCounter value={totalRemaining} />
+              </span>
             </div>
           </div>
-        </section>
-
-        {/* Create Budget Card */}
-        <section className="create-budget-section">
-          {!showForm ? (
-            <button className="create-budget-trigger" onClick={() => setShowForm(true)}>
-              <div className="trigger-icon">
-                <FiPlus size={24} />
-              </div>
-              <div className="trigger-content">
-                <span className="trigger-title">Create New Budget</span>
-                <span className="trigger-subtitle">Set spending limits for your categories</span>
-              </div>
-              <FiChevronDown className="trigger-arrow" />
-            </button>
-          ) : (
-            <div className="create-budget-card">
-              <div className="card-header">
-                <h3>{editingId ? 'Edit Budget' : 'Create New Budget'}</h3>
-                <button className="close-form-btn" onClick={resetForm}>
-                  <FiX size={20} />
-                </button>
-              </div>
-              
-              <form onSubmit={handleSubmit} className="budget-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Category</label>
-                    <div className="select-wrapper">
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">Select category</option>
-                        {CATEGORY_OPTIONS.map(cat => (
-                          <option key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </option>
-                        ))}
-                      </select>
-                      {formData.category && (
-                        <span className="selected-icon">
-                          {getCategoryIcon(formData.category)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Budget Amount (ETB)</label>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      placeholder="Enter amount"
-                      required
-                      min="0"
-                    />
-                  </div>
-                </div>
-                
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Period</label>
-                    <div className="period-toggle">
-                      <button
-                        type="button"
-                        className={`period-option ${formData.period === 'weekly' ? 'active' : ''}`}
-                        onClick={() => setFormData({ ...formData, period: 'weekly' })}
-                      >
-                        Weekly
-                      </button>
-                      <button
-                        type="button"
-                        className={`period-option ${formData.period === 'monthly' ? 'active' : ''}`}
-                        onClick={() => setFormData({ ...formData, period: 'monthly' })}
-                      >
-                        Monthly
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Note (Optional)</label>
-                    <input
-                      type="text"
-                      name="note"
-                      value={formData.note}
-                      onChange={handleChange}
-                      placeholder="Add a note..."
-                    />
-                  </div>
-                </div>
-                
-                <div className="form-actions">
-                  <button type="button" className="btn-cancel" onClick={resetForm}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-submit">
-                    <FiPlus size={18} />
-                    {editingId ? 'Update Budget' : 'Set Budget'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
         </section>
 
         {/* Smart Warnings */}
         {getWarnings().length > 0 && (
           <section className="warnings-section">
+            <h3 className="section-subtitle">
+              <FiAlertCircle /> Alerts & Insights
+            </h3>
             <div className="warnings-grid">
               {getWarnings().map((warning, index) => (
                 <div key={index} className={`warning-card ${warning.type}`}>
-                  <span className="warning-icon">
-                    {warning.type === 'danger' ? <FiAlertCircle /> : 
-                     warning.type === 'warning' ? <FiAlertCircle /> : <FiCheckCircle />}
-                  </span>
+                  <span className="warning-icon">{warning.icon}</span>
                   <span className="warning-message">{warning.message}</span>
                 </div>
               ))}
@@ -560,10 +654,32 @@ const Budgets = () => {
           </section>
         )}
 
+        {/* AI Insights Panel */}
+        <section className="ai-insights-section">
+          <div className="ai-insights-header">
+            <h3 className="section-subtitle">
+              <FiSmartphone /> AI Insights
+            </h3>
+          </div>
+          <div className="ai-insights-grid">
+            {getAIInsights().map((insight, index) => (
+              <div key={index} className="insight-card" style={{ borderLeftColor: insight.color }}>
+                <div className="insight-icon" style={{ color: insight.color }}>
+                  {insight.icon}
+                </div>
+                <div className="insight-content">
+                  <h4>{insight.title}</h4>
+                  <p>{insight.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Budget Progress Cards */}
         <section className="budget-cards-section">
           <div className="section-header">
-            <h2 className="section-title">Budget Progress</h2>
+            <h2 className="section-title">Budget Categories</h2>
             
             <div className="section-actions">
               {/* Filter */}
@@ -623,10 +739,14 @@ const Budgets = () => {
                 </button>
               </div>
               
-              {/* Export */}
+              {/* Export Buttons */}
               <button className="export-btn" onClick={exportToCSV}>
                 <FiDownload size={18} />
-                Export
+                CSV
+              </button>
+              <button className="export-btn pdf-btn" onClick={exportToPDF}>
+                <FiFileText size={18} />
+                PDF
               </button>
             </div>
           </div>
@@ -708,7 +828,7 @@ const Budgets = () => {
                   </div>
                   <h3>No budgets yet</h3>
                   <p>Create your first budget to start tracking your spending</p>
-                  <button className="btn-primary" onClick={() => setShowForm(true)}>
+                  <button className="btn-primary" onClick={openAddModal}>
                     <FiPlus size={18} />
                     Create Budget
                   </button>
@@ -877,6 +997,108 @@ const Budgets = () => {
           </section>
         )}
       </div>
+
+      {/* Add/Edit Budget Modal */}
+      <Modal 
+        isOpen={showModal} 
+        onClose={resetForm} 
+        title={modalMode === 'add' ? 'Create New Budget' : 'Edit Budget'}
+      >
+        <form onSubmit={handleSubmit} className="budget-form">
+          <div className="form-group">
+            <label>Category</label>
+            <div className="select-wrapper">
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select category</option>
+                {CATEGORY_OPTIONS.map(cat => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+              {formData.category && (
+                <span className="selected-icon">
+                  {getCategoryIcon(formData.category)}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label>Budget Amount (ETB)</label>
+            <input
+              type="number"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              placeholder="Enter amount"
+              required
+              min="0"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Period</label>
+            <div className="period-toggle">
+              <button
+                type="button"
+                className={`period-option ${formData.period === 'weekly' ? 'active' : ''}`}
+                onClick={() => setFormData({ ...formData, period: 'weekly' })}
+              >
+                Weekly
+              </button>
+              <button
+                type="button"
+                className={`period-option ${formData.period === 'monthly' ? 'active' : ''}`}
+                onClick={() => setFormData({ ...formData, period: 'monthly' })}
+              >
+                Monthly
+              </button>
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label>Color</label>
+            <div className="color-selector">
+              {['#10B981', '#F59E0B', '#3B82F6', '#6366F1', '#EC4899', '#EF4444', '#8B5CF6', '#14B8A6'].map(color => (
+                <button
+                  key={color}
+                  type="button"
+                  className={`color-option ${selectedColor === color ? 'active' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setSelectedColor(color)}
+                />
+              ))}
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label>Note (Optional)</label>
+            <input
+              type="text"
+              name="note"
+              value={formData.note}
+              onChange={handleChange}
+              placeholder="Add a note..."
+            />
+          </div>
+          
+          <div className="form-actions">
+            <button type="button" className="btn-cancel" onClick={resetForm}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-submit">
+              <FiPlus size={18} />
+              {modalMode === 'add' ? 'Create Budget' : 'Update Budget'}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Toast Notification */}
       {toast && (

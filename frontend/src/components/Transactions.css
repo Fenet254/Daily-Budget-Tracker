@@ -188,7 +188,7 @@
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
   font-family: inherit;
-  color: var(--text-primary);
+  color: #000000;
   background: var(--bg-secondary);
   transition: all var(--transition-fast);
   box-sizing: border-box;
