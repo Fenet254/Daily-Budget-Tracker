@@ -45,7 +45,7 @@
 
 .auth-form-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
   min-height: auto;
   display: flex;
   flex-direction: column;
@@ -131,6 +131,7 @@
 
 .form-row .form-group {
   flex: 1;
+  max-width: calc(50% - var(--space-sm) / 2);
 }
 
 .form-group {
@@ -155,6 +156,7 @@
   transition: all var(--transition-fast);
   background: transparent;
   padding: 0 4px;
+  text-transform: none;
 }
 
 .form-group.floating-label .input-wrapper label {
@@ -426,6 +428,19 @@
 .social-btn:hover {
   background: var(--bg-tertiary);
   border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.social-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.social-btn:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
 .social-btn svg {
@@ -570,7 +585,7 @@
 /* Large Desktop */
 @media (min-width: 1440px) {
   .auth-form-container {
-    max-width: 480px;
+    max-width: 720px;
     padding: var(--space-2xl);
   }
   
@@ -649,6 +664,11 @@
   margin-bottom: var(--space-xs);
 }
 
+.auth-copyright {
+  font-weight: 700 !important;
+  color: #000000 !important;
+}
+
 .auth-footer-links {
   display: flex;
   justify-content: center;
@@ -657,7 +677,8 @@
 }
 
 .auth-footer-links a {
-  color: var(--text-secondary);
+  color: #000000;
+  font-weight: 700;
   text-decoration: none;
   transition: color var(--transition-fast);
 }

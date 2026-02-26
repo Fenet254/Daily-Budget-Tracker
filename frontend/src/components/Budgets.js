@@ -509,7 +509,7 @@ const Budgets = () => {
       insights.push({
         icon: <FiAward />,
         title: 'Great Job!',
-        description: 'All budgets are within limits. Keep it up! 🎉',
+description: 'All budgets are within limits. Keep it up!',
         color: '#8B5CF6'
       });
     }

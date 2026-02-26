@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider, AuthContext } from './AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import Transactions from './components/Transactions';
 import Budgets from './components/Budgets';
@@ -24,7 +25,7 @@ function AppContent() {
   const location = useLocation();
   const { user } = React.useContext(AuthContext);
   
-  const hideNavAndFooter = location.pathname === '/login' || location.pathname === '/register';
+  const hideNavAndFooter = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/forgot-password';
   
   return (
     <div className="App">
@@ -34,6 +35,7 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
           <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />

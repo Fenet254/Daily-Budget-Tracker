@@ -1,0 +1,17 @@
+/* Register page specific styles */
+.register-page .auth-form-container {
+  max-width: 720px;
+  padding: var(--space-lg);
+}
+
+.register-page .form-input {
+  padding: 12px 14px;
+}
+
+.register-page .form-row {
+  gap: var(--space-xs);
+}
+
+.register-page .form-row .form-group {
+  max-width: calc(50% - var(--space-xs) / 2);
+}

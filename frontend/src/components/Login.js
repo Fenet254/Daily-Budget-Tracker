@@ -70,7 +70,7 @@ const Login = () => {
     <div className="auth-page">
       <div className="auth-background">
         <img 
-          src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1920&q=80" 
+          src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1920&q=100" 
           alt="Budget tracking background" 
         />
       </div>
@@ -159,7 +159,7 @@ const Login = () => {
         </div>
 
         <footer className="auth-footer">
-          <p>&copy; 2026 Daily Budget Tracker. All rights reserved.</p>
+          <p className="auth-copyright">&copy; 2026 Daily Budget Tracker. All rights reserved.</p>
           <div className="auth-footer-links">
             <a href="/privacy">Privacy Policy</a>
             <span>•</span>

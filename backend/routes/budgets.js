@@ -1,17 +1,40 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Budget = require('../models/Budget');
+const Transaction = require('../models/Transaction');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
 // @route   GET /budgets
-// @desc    Get all budgets for user
+// @desc    Get all budgets for user with calculated spent amounts
 // @access  Private
 router.get('/', protect, async (req, res) => {
   try {
     const budgets = await Budget.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json(budgets);
+    
+    // Calculate spent amounts for each budget based on transactions
+    const budgetsWithSpent = await Promise.all(budgets.map(async (budget) => {
+      const startDate = budget.startDate || new Date(new Date().setDate(1)); // Start of month
+      const endDate = budget.endDate || new Date();
+      
+      // Get transactions for this category in the budget period
+      const transactions = await Transaction.find({
+        user: req.user.id,
+        category: budget.category,
+        type: 'expense',
+        date: { $gte: startDate, $lte: endDate }
+      });
+      
+      const spent = transactions.reduce((sum, t) => sum + t.amount, 0);
+      
+      return {
+        ...budget.toObject(),
+        spent
+      };
+    }));
+    
+    res.json(budgetsWithSpent);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

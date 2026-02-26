@@ -1,47 +1,15 @@
-# TODO: Settings Design and Remove Comments
+# Task: Update Dashboard greeting, Contact & Help pages, and remove language selector
 
-## Settings Component
-- [ ] Create Settings.js component
-- [ ] Create Settings.css styling
-- [ ] Add Settings route to App.js
-- [ ] Update Navbar to link to Settings (already has link)
+## TODO List:
+- [x] 1. Plan the task (Done)
+- [ ] 2. Update Dashboard.js - Add time-based greeting function
+- [ ] 3. Update Footer.js - Remove language selector
+- [ ] 4. Update App.js - Add routes for /contact and /help
+- [ ] 5. Create Contact.js - Design contact page
+- [ ] 6. Create Contact.css - Contact page styling
+- [ ] 7. Create Help.js - Design help page
+- [ ] 8. Create Help.css - Help page styling
 
-## Remove Comments from Files
-### Frontend Components
-- [ ] Login.js
-- [ ] Register.js
-- [ ] Dashboard.js
-- [ ] Transactions.js
-- [ ] Budgets.js
-- [ ] Reports.js
-- [ ] SMSImport.js
-- [ ] Profile.js
-- [ ] Navbar.js
-- [ ] Footer.js
-
-### Frontend CSS
-- [ ] App.css
-- [ ] Auth.css
-- [ ] Dashboard.css
-- [ ] Transactions.css
-- [ ] Budgets.css
-- [ ] Reports.css
-- [ ] SMSImport.css
-- [ ] Profile.css
-- [ ] Navbar.css
-- [ ] Footer.css
-
-### Backend Files
-- [ ] server.js
-- [ ] auth.js routes
-- [ ] transactions.js routes
-- [ ] budgets.js routes
-- [ ] reports.js routes
-- [ ] sms.js routes
-- [ ] User.js model
-- [ ] Transaction.js model
-- [ ] Budget.js model
-- [ ] Category.js model
-- [ ] auth.js middleware
-- [ ] database.js config
-- [ ] smsParser.js utils
+## Implementation Status:
+- Plan: ✅ Approved by user
+- Implementation: In Progress

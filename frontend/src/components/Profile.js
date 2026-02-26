@@ -2,10 +2,15 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../AuthContext';
 import { 
-  FiUser, FiMail, FiPhone, FiMapPin, FiCalendar, FiCamera, 
-  FiEdit2, FiSave, FiX, FiLock, FiBell, FiGlobe, FiMoon,
-  FiSun, FiCheck, FiAlertCircle, FiTrendingUp
+  FiUser, FiPhone, FiMapPin, FiGlobe, FiDollarSign, FiCalendar,
+  FiCamera, FiEdit2, FiSave, FiX, FiCheck, FiAlertCircle,
+  FiWifi, FiMessageCircle, FiMail, FiHeart, FiShield,
+  FiTrendingUp, FiTarget, FiAward, FiZap
 } from 'react-icons/fi';
+import { 
+  FaWhatsapp, FaTelegram, FaFacebook, FaInstagram, FaCcVisa 
+} from 'react-icons/fa';
+import { GiPiggyBank, GiWallet } from 'react-icons/gi';
 import './Profile.css';
 
 const API = axios.create({
@@ -20,50 +25,168 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+// Money personality badges without emojis
+const PERSONALITY_BADGES = {
+  'Smart Saver': { color: '#8B5CF6', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%)' },
+  'Budget Hero': { color: '#F59E0B', gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)' },
+  'Money Mindful': { color: '#10B981', gradient: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)' },
+  'Saver Star': { color: '#3B82F6', gradient: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)' },
+  'Frugal Fighter': { color: '#EF4444', gradient: 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)' },
+  'Budget Boss': { color: '#EC4899', gradient: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)' }
+};
+
+// Currency symbols
+const CURRENCY_SYMBOLS = {
+  'ETB': 'Br',
+  'USD': '$',
+  'EUR': '€',
+  'GBP': '£',
+  'KES': 'KSh'
+};
+
+// Format currency
+const formatCurrency = (amount, currency = 'ETB') => {
+  const symbol = CURRENCY_SYMBOLS[currency] || '$';
+  return `${symbol}${new Intl.NumberFormat('en-US').format(amount || 0)}`;
+};
+
+// Animated counter component
+const AnimatedCounter = ({ value, currency = 'ETB', prefix = '', suffix = '' }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    const duration = 1500;
+    const steps = 60;
+    const increment = value / steps;
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) {
+        setDisplayValue(value);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(Math.floor(current));
+      }
+    }, duration / steps);
+    
+    return () => clearInterval(timer);
+  }, [value]);
+  
+  return <span>{prefix}{formatCurrency(displayValue, currency)}{suffix}</span>;
+};
+
+// Progress ring component
+const ProgressRing = ({ progress, size = 80, strokeWidth = 8, color = '#10B981' }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+  
+  return (
+    <div className="progress-ring-container">
+      <svg width={size} height={size} className="progress-ring">
+        <circle
+          className="progress-ring-bg"
+          stroke="var(--border-color)"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        <circle
+          className="progress-ring-progress"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          style={{ strokeDasharray: circumference, strokeDashoffset: offset }}
+        />
+      </svg>
+      <div className="progress-ring-text">
+        <span>{Math.round(progress)}%</span>
+      </div>
+    </div>
+  );
+};
+
+// Stat card component
+const StatCard = ({ icon, label, value, subValue, color, gradient, prefix = '', suffix = '', showProgress = false, progress = 0 }) => (
+  <div className="stat-card" style={{ '--card-color': color, '--card-gradient': gradient }}>
+    <div className="stat-card-icon">
+      {icon}
+    </div>
+    <div className="stat-card-content">
+      <span className="stat-card-label">{label}</span>
+      <div className="stat-card-value">
+        <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
+      </div>
+      {subValue && <span className="stat-card-sub">{subValue}</span>}
+    </div>
+    {showProgress && (
+      <div className="stat-card-progress">
+        <ProgressRing progress={progress} color={color} />
+      </div>
+    )}
+  </div>
+);
+
 const Profile = () => {
   const { user, setUser } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
+  
+  // Get currency from user preferences
+  const currency = user?.preferences?.currency || 'ETB';
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    bio: user?.bio || '',
     profilePhoto: user?.profilePhoto || '',
-    dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
     address: {
-      street: user?.address?.street || '',
-      city: user?.address?.city || '',
-      state: user?.address?.state || '',
-      zipCode: user?.address?.zipCode || '',
       country: user?.address?.country || '',
     },
     preferences: {
       theme: user?.preferences?.theme || 'system',
       currency: user?.preferences?.currency || 'ETB',
       language: user?.preferences?.language || 'en',
-      notifications: {
-        email: user?.preferences?.notifications?.email ?? true,
-        push: user?.preferences?.notifications?.push ?? true,
-        sms: user?.preferences?.notifications?.sms ?? false,
-      },
     },
     socialLinks: {
-      twitter: user?.socialLinks?.twitter || '',
-      linkedin: user?.socialLinks?.linkedin || '',
-      github: user?.socialLinks?.github || '',
+      whatsapp: user?.socialLinks?.whatsapp || '',
+      telegram: user?.socialLinks?.telegram || '',
+      facebook: user?.socialLinks?.facebook || '',
+      instagram: user?.socialLinks?.instagram || '',
     },
+    emergencyContact: {
+      name: user?.emergencyContact?.name || '',
+      phone: user?.emergencyContact?.phone || '',
+      relationship: user?.emergencyContact?.relationship || '',
+    },
+    moneyPersonality: user?.moneyPersonality || 'None',
+    financialStats: {
+      monthlyBudget: user?.financialStats?.monthlyBudget || 15000,
+      savingsStreak: user?.financialStats?.savingsStreak || 7,
+      financialGoal: user?.financialStats?.financialGoal || 100000,
+      goalProgress: user?.financialStats?.goalProgress || 35,
+    },
+    lifestylePreferences: {
+      food: user?.lifestylePreferences?.food ?? true,
+      transport: user?.lifestylePreferences?.transport ?? true,
+      rent: user?.lifestylePreferences?.rent ?? false,
+      education: user?.lifestylePreferences?.education ?? false,
+      entertainment: user?.lifestylePreferences?.entertainment ?? true,
+    },
+    moneyStory: user?.moneyStory || '',
   });
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
+  // Sample today's spending (in real app, fetch from API)
+  const todaySpending = 1250;
 
   useEffect(() => {
     fetchUserProfile();
@@ -77,31 +200,41 @@ const Profile = () => {
         name: userData.name || '',
         email: userData.email || '',
         phone: userData.phone || '',
-        bio: userData.bio || '',
         profilePhoto: userData.profilePhoto || '',
-        dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : '',
         address: {
-          street: userData.address?.street || '',
-          city: userData.address?.city || '',
-          state: userData.address?.state || '',
-          zipCode: userData.address?.zipCode || '',
           country: userData.address?.country || '',
         },
         preferences: {
           theme: userData.preferences?.theme || 'system',
           currency: userData.preferences?.currency || 'ETB',
           language: userData.preferences?.language || 'en',
-          notifications: {
-            email: userData.preferences?.notifications?.email ?? true,
-            push: userData.preferences?.notifications?.push ?? true,
-            sms: userData.preferences?.notifications?.sms ?? false,
-          },
         },
         socialLinks: {
-          twitter: userData.socialLinks?.twitter || '',
-          linkedin: userData.socialLinks?.linkedin || '',
-          github: userData.socialLinks?.github || '',
+          whatsapp: userData.socialLinks?.whatsapp || '',
+          telegram: userData.socialLinks?.telegram || '',
+          facebook: userData.socialLinks?.facebook || '',
+          instagram: userData.socialLinks?.instagram || '',
         },
+        emergencyContact: {
+          name: userData.emergencyContact?.name || '',
+          phone: userData.emergencyContact?.phone || '',
+          relationship: userData.emergencyContact?.relationship || '',
+        },
+        moneyPersonality: userData.moneyPersonality || 'None',
+        financialStats: {
+          monthlyBudget: userData.financialStats?.monthlyBudget || 15000,
+          savingsStreak: userData.financialStats?.savingsStreak || 7,
+          financialGoal: userData.financialStats?.financialGoal || 100000,
+          goalProgress: userData.financialStats?.goalProgress || 35,
+        },
+        lifestylePreferences: {
+          food: userData.lifestylePreferences?.food ?? true,
+          transport: userData.lifestylePreferences?.transport ?? true,
+          rent: userData.lifestylePreferences?.rent ?? false,
+          education: userData.lifestylePreferences?.education ?? false,
+          entertainment: userData.lifestylePreferences?.entertainment ?? true,
+        },
+        moneyStory: userData.moneyStory || '',
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -125,26 +258,33 @@ const Profile = () => {
       });
     } else if (name.startsWith('preferences.')) {
       const field = name.split('.')[1];
-      if (field === 'notifications') {
-        const notifField = e.target.dataset.notif;
-        setFormData({
-          ...formData,
-          preferences: {
-            ...formData.preferences,
-            notifications: { ...formData.preferences.notifications, [notifField]: checked },
-          },
-        });
-      } else {
-        setFormData({
-          ...formData,
-          preferences: { ...formData.preferences, [field]: value },
-        });
-      }
+      setFormData({
+        ...formData,
+        preferences: { ...formData.preferences, [field]: value },
+      });
     } else if (name.startsWith('socialLinks.')) {
       const field = name.split('.')[1];
       setFormData({
         ...formData,
         socialLinks: { ...formData.socialLinks, [field]: value },
+      });
+    } else if (name.startsWith('emergencyContact.')) {
+      const field = name.split('.')[1];
+      setFormData({
+        ...formData,
+        emergencyContact: { ...formData.emergencyContact, [field]: value },
+      });
+    } else if (name.startsWith('financialStats.')) {
+      const field = name.split('.')[1];
+      setFormData({
+        ...formData,
+        financialStats: { ...formData.financialStats, [field]: Number(value) },
+      });
+    } else if (name.startsWith('lifestylePreferences.')) {
+      const field = name.split('.')[1];
+      setFormData({
+        ...formData,
+        lifestylePreferences: { ...formData.lifestylePreferences, [field]: checked },
       });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -178,35 +318,6 @@ const Profile = () => {
     }
   };
 
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showToast('Passwords do not match', 'error');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      showToast('Password must be at least 6 characters', 'error');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await API.put('/auth/password', {
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-      });
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      showToast('Password changed successfully!', 'success');
-    } catch (error) {
-      console.error('Error changing password:', error);
-      showToast(error.response?.data?.msg || 'Failed to change password', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handlePreferenceChange = async (pref, value) => {
     const newPreferences = { ...formData.preferences, [pref]: value };
     setFormData({ ...formData, preferences: newPreferences });
@@ -215,7 +326,6 @@ const Profile = () => {
       await API.put('/auth/profile', { preferences: newPreferences });
       showToast('Preferences saved!', 'success');
       
-      // Apply theme change
       if (pref === 'theme') {
         if (value === 'dark') {
           document.documentElement.setAttribute('data-theme', 'dark');
@@ -236,26 +346,30 @@ const Profile = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const formatDate = (date) => {
-    if (!date) return 'Not set';
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  const getPersonalityBadge = () => {
+    const personality = PERSONALITY_BADGES[formData.moneyPersonality];
+    if (personality) {
+      return personality;
+    }
+    // Default for 'None' or any other case
+    return { color: '#6B7280', gradient: 'linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%)' };
   };
+
+  const personality = getPersonalityBadge();
 
   return (
     <div className="profile-page">
       <div className="profile-container">
-        {/* Profile Header */}
-        <div className="profile-header">
-          <div className="profile-cover">
-            <div className="profile-cover-gradient"></div>
+        {/* Hero Header */}
+        <div className="profile-hero">
+          <div className="hero-background">
+            <div className="hero-gradient"></div>
+            <div className="hero-pattern"></div>
           </div>
-          <div className="profile-header-content">
-            <div className="profile-avatar-wrapper">
-              <div className="profile-avatar">
+          
+          <div className="hero-content">
+            <div className="hero-avatar-section">
+              <div className="hero-avatar">
                 {formData.profilePhoto ? (
                   <img src={formData.profilePhoto} alt="Profile" />
                 ) : (
@@ -264,7 +378,7 @@ const Profile = () => {
               </div>
               {isEditing && (
                 <button 
-                  className="profile-avatar-edit"
+                  className="avatar-edit-btn"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <FiCamera />
@@ -278,35 +392,39 @@ const Profile = () => {
                 style={{ display: 'none' }}
               />
             </div>
-            <div className="profile-header-info">
-              <h1>{formData.name || 'User'}</h1>
-              <p className="profile-email">{formData.email}</p>
-              <p className="profile-joined">
-                <FiCalendar /> Member since {formatDate(user?.createdAt)}
-              </p>
+            
+            <div className="hero-info">
+              <h1 className="hero-name">{formData.name || 'Your Name'}</h1>
+              <p className="hero-email">{formData.email}</p>
+              
+              {/* Money Personality Badge */}
+              <div className="personality-badge" style={{ background: personality.gradient }}>
+                <span className="badge-text">{formData.moneyPersonality}</span>
+              </div>
             </div>
-            <div className="profile-header-actions">
+            
+            <div className="hero-actions">
               {!isEditing ? (
                 <button 
-                  className="profile-edit-btn"
+                  className="edit-profile-btn"
                   onClick={() => setIsEditing(true)}
                 >
                   <FiEdit2 /> Edit Profile
                 </button>
               ) : (
-                <div className="profile-edit-actions">
+                <div className="edit-actions">
                   <button 
-                    className="profile-cancel-btn"
+                    className="cancel-btn"
                     onClick={() => { setIsEditing(false); fetchUserProfile(); }}
                   >
                     <FiX /> Cancel
                   </button>
                   <button 
-                    className="profile-save-btn"
+                    className="save-btn"
                     onClick={handleProfileSubmit}
                     disabled={loading}
                   >
-                    {loading ? 'Saving...' : <><FiSave /> Save Changes</>}
+                    {loading ? 'Saving...' : <><FiSave /> Save</>}
                   </button>
                 </div>
               )}
@@ -314,305 +432,107 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Profile Tabs */}
-        <div className="profile-tabs">
-          <button 
-            className={`profile-tab ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            <FiUser /> Profile
-          </button>
-          <button 
-            className={`profile-tab ${activeTab === 'security' ? 'active' : ''}`}
-            onClick={() => setActiveTab('security')}
-          >
-            <FiLock /> Security
-          </button>
-          <button 
-            className={`profile-tab ${activeTab === 'preferences' ? 'active' : ''}`}
-            onClick={() => setActiveTab('preferences')}
-          >
-            <FiBell /> Preferences
-          </button>
+        {/* Financial Stats Cards */}
+        <div className="stats-section">
+          <StatCard 
+            icon={<FiDollarSign />}
+            label="Monthly Budget"
+            value={formData.financialStats.monthlyBudget}
+            currency={formData.preferences.currency}
+            color="#10B981"
+            gradient="linear-gradient(135deg, #10B981 0%, #34D399 100%)"
+          />
+          <StatCard 
+            icon={<FiZap />}
+            label="Today's Spending"
+            value={todaySpending}
+            currency={formData.preferences.currency}
+            subValue="of remaining budget"
+            color="#F59E0B"
+            gradient="linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)"
+          />
+          <StatCard 
+            icon={<GiPiggyBank />}
+            label="Savings Streak"
+            value={formData.financialStats.savingsStreak}
+            suffix=" days"
+            color="#8B5CF6"
+            gradient="linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%)"
+          />
+          <StatCard 
+            icon={<FiTarget />}
+            label="Financial Goal"
+            value={formData.financialStats.financialGoal}
+            currency={formData.preferences.currency}
+            color="#3B82F6"
+            gradient="linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)"
+            showProgress={true}
+            progress={formData.financialStats.goalProgress}
+          />
         </div>
 
-        {/* Profile Content */}
-        <div className="profile-content">
-          {/* Profile Tab */}
-          {activeTab === 'profile' && (
-            <div className="profile-section">
-              <div className="profile-card">
-                <h3 className="profile-card-title">Personal Information</h3>
-                <div className="profile-form-grid">
-                  <div className="profile-form-group">
-                    <label><FiUser /> Full Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label><FiMail /> Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      disabled
-                      className="disabled-input"
-                    />
-                    <span className="input-hint">Email cannot be changed</span>
-                  </div>
-                  <div className="profile-form-group">
-                    <label><FiPhone /> Phone Number</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="Enter your phone number"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label><FiCalendar /> Date of Birth</label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                  <div className="profile-form-group full-width">
-                    <label><FiUser /> Bio</label>
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="Tell us about yourself..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="profile-card">
-                <h3 className="profile-card-title">Address</h3>
-                <div className="profile-form-grid">
-                  <div className="profile-form-group full-width">
-                    <label><FiMapPin /> Street Address</label>
-                    <input
-                      type="text"
-                      name="address.street"
-                      value={formData.address.street}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="Enter your street address"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label><FiMapPin /> City</label>
-                    <input
-                      type="text"
-                      name="address.city"
-                      value={formData.address.city}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="City"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label><FiMapPin /> State/Province</label>
-                    <input
-                      type="text"
-                      name="address.state"
-                      value={formData.address.state}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="State"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label><FiMapPin /> ZIP/Postal Code</label>
-                    <input
-                      type="text"
-                      name="address.zipCode"
-                      value={formData.address.zipCode}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="ZIP Code"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label><FiMapPin /> Country</label>
-                    <input
-                      type="text"
-                      name="address.country"
-                      value={formData.address.country}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="Country"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="profile-card">
-                <h3 className="profile-card-title">Social Links</h3>
-                <div className="profile-form-grid">
-                  <div className="profile-form-group">
-                    <label>Twitter</label>
-                    <input
-                      type="text"
-                      name="socialLinks.twitter"
-                      value={formData.socialLinks.twitter}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="@username"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label>LinkedIn</label>
-                    <input
-                      type="text"
-                      name="socialLinks.linkedin"
-                      value={formData.socialLinks.linkedin}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="LinkedIn profile"
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label>GitHub</label>
-                    <input
-                      type="text"
-                      name="socialLinks.github"
-                      value={formData.socialLinks.github}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      placeholder="GitHub username"
-                    />
-                  </div>
-                </div>
-              </div>
+        {/* Main Content Grid */}
+        <div className="profile-content-grid">
+          {/* Personal Info Card */}
+          <div className="profile-card glass-card">
+            <div className="card-header">
+              <FiUser className="card-icon" />
+              <h3>Personal Info</h3>
             </div>
-          )}
-
-          {/* Security Tab */}
-          {activeTab === 'security' && (
-            <div className="profile-section">
-              <div className="profile-card">
-                <h3 className="profile-card-title">
-                  <FiLock /> Change Password
-                </h3>
-                <p className="profile-card-description">
-                  Update your password to keep your account secure
-                </p>
-                <form onSubmit={handlePasswordSubmit} className="password-form">
-                  <div className="profile-form-group">
-                    <label>Current Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                      placeholder="Enter current password"
-                      required
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label>New Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                      placeholder="Enter new password"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label>Confirm New Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                      placeholder="Confirm new password"
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="password-submit-btn" disabled={loading}>
-                    {loading ? 'Updating...' : 'Update Password'}
-                  </button>
-                </form>
+            <div className="card-content">
+              <div className="info-item">
+                <span className="info-label">Name</span>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Your name"
+                    className="info-input"
+                  />
+                ) : (
+                  <span className="info-value">{formData.name || 'Not set'}</span>
+                )}
               </div>
-
-              <div className="profile-card security-info">
-                <h3 className="profile-card-title">Security Tips</h3>
-                <ul className="security-tips">
-                  <li>
-                    <FiCheck /> Use a strong, unique password
-                  </li>
-                  <li>
-                    <FiCheck /> Change your password regularly
-                  </li>
-                  <li>
-                    <FiCheck /> Don't share your password with anyone
-                  </li>
-                  <li>
-                    <FiCheck /> Enable two-factor authentication (coming soon)
-                  </li>
-                </ul>
+              <div className="info-item">
+                <span className="info-label">Phone</span>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="Phone number"
+                    className="info-input"
+                  />
+                ) : (
+                  <span className="info-value">{formData.phone || 'Not set'}</span>
+                )}
               </div>
-            </div>
-          )}
-
-          {/* Preferences Tab */}
-          {activeTab === 'preferences' && (
-            <div className="profile-section">
-              <div className="profile-card">
-                <h3 className="profile-card-title">
-                  <FiGlobe /> Appearance
-                </h3>
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <label>Theme</label>
-                    <p>Choose your preferred color theme</p>
-                  </div>
-                  <div className="theme-selector">
-                    <button
-                      className={`theme-option ${formData.preferences.theme === 'light' ? 'active' : ''}`}
-                      onClick={() => handlePreferenceChange('theme', 'light')}
-                    >
-                      <FiSun /> Light
-                    </button>
-                    <button
-                      className={`theme-option ${formData.preferences.theme === 'dark' ? 'active' : ''}`}
-                      onClick={() => handlePreferenceChange('theme', 'dark')}
-                    >
-                      <FiMoon /> Dark
-                    </button>
-                    <button
-                      className={`theme-option ${formData.preferences.theme === 'system' ? 'active' : ''}`}
-                      onClick={() => handlePreferenceChange('theme', 'system')}
-                    >
-                      <FiGlobe /> System
-                    </button>
-                  </div>
-                </div>
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <label>Currency</label>
-                    <p>Select your preferred currency</p>
-                  </div>
+              <div className="info-item">
+                <span className="info-label">Country</span>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="address.country"
+                    value={formData.address.country}
+                    onChange={handleInputChange}
+                    placeholder="Your country"
+                    className="info-input"
+                  />
+                ) : (
+                  <span className="info-value">{formData.address.country || 'Not set'}</span>
+                )}
+              </div>
+              <div className="info-item">
+                <span className="info-label">Currency</span>
+                {isEditing ? (
                   <select
+                    name="preferences.currency"
                     value={formData.preferences.currency}
-                    onChange={(e) => handlePreferenceChange('currency', e.target.value)}
-                    className="preference-select"
+                    onChange={handleInputChange}
+                    className="info-select"
                   >
                     <option value="ETB">ETB - Ethiopian Birr</option>
                     <option value="USD">USD - US Dollar</option>
@@ -620,111 +540,310 @@ const Profile = () => {
                     <option value="GBP">GBP - British Pound</option>
                     <option value="KES">KES - Kenyan Shilling</option>
                   </select>
-                </div>
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <label>Language</label>
-                    <p>Select your preferred language</p>
+                ) : (
+                  <span className="info-value">{formData.preferences.currency} ({CURRENCY_SYMBOLS[formData.preferences.currency]})</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Lifestyle Preferences Card */}
+          <div className="profile-card glass-card">
+            <div className="card-header">
+              <FiHeart className="card-icon" />
+              <h3>Lifestyle Preferences</h3>
+            </div>
+            <div className="card-content">
+              <div className="lifestyle-grid">
+                <label className={`lifestyle-item ${formData.lifestylePreferences.food ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    name="lifestylePreferences.food"
+                    checked={formData.lifestylePreferences.food}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                  <span className="lifestyle-label">Food</span>
+                </label>
+                <label className={`lifestyle-item ${formData.lifestylePreferences.transport ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    name="lifestylePreferences.transport"
+                    checked={formData.lifestylePreferences.transport}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                  <span className="lifestyle-label">Transport</span>
+                </label>
+                <label className={`lifestyle-item ${formData.lifestylePreferences.rent ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    name="lifestylePreferences.rent"
+                    checked={formData.lifestylePreferences.rent}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                  <span className="lifestyle-label">Rent</span>
+                </label>
+                <label className={`lifestyle-item ${formData.lifestylePreferences.education ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    name="lifestylePreferences.education"
+                    checked={formData.lifestylePreferences.education}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                  <span className="lifestyle-label">Education</span>
+                </label>
+                <label className={`lifestyle-item ${formData.lifestylePreferences.entertainment ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    name="lifestylePreferences.entertainment"
+                    checked={formData.lifestylePreferences.entertainment}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                  <span className="lifestyle-label">Entertainment</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Connect & Backup Card */}
+          <div className="profile-card glass-card">
+            <div className="card-header">
+              <FiWifi className="card-icon" />
+              <h3>Connect and Backup</h3>
+            </div>
+            <div className="card-content">
+              <div className="social-grid">
+                <div className={`social-item ${formData.socialLinks.whatsapp ? 'connected' : ''}`}>
+                  <div className="social-icon whatsapp">
+                    <FaWhatsapp />
                   </div>
-                  <select
-                    value={formData.preferences.language}
-                    onChange={(e) => handlePreferenceChange('language', e.target.value)}
-                    className="preference-select"
-                  >
-                    <option value="en">English</option>
-                    <option value="am">Amharic</option>
-                    <option value="fr">French</option>
-                    <option value="es">Spanish</option>
-                  </select>
+                  <div className="social-info">
+                    <span className="social-name">WhatsApp</span>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="socialLinks.whatsapp"
+                        value={formData.socialLinks.whatsapp}
+                        onChange={handleInputChange}
+                        placeholder="Phone number"
+                        className="social-input"
+                      />
+                    ) : (
+                      <span className="social-status">{formData.socialLinks.whatsapp ? 'Connected' : 'Not connected'}</span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className={`social-item ${formData.socialLinks.telegram ? 'connected' : ''}`}>
+                  <div className="social-icon telegram">
+                    <FaTelegram />
+                  </div>
+                  <div className="social-info">
+                    <span className="social-name">Telegram</span>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="socialLinks.telegram"
+                        value={formData.socialLinks.telegram}
+                        onChange={handleInputChange}
+                        placeholder="Username"
+                        className="social-input"
+                      />
+                    ) : (
+                      <span className="social-status">{formData.socialLinks.telegram ? 'Connected' : 'Not connected'}</span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className={`social-item ${formData.socialLinks.facebook ? 'connected' : ''}`}>
+                  <div className="social-icon facebook">
+                    <FaFacebook />
+                  </div>
+                  <div className="social-info">
+                    <span className="social-name">Facebook</span>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="socialLinks.facebook"
+                        value={formData.socialLinks.facebook}
+                        onChange={handleInputChange}
+                        placeholder="Profile link"
+                        className="social-input"
+                      />
+                    ) : (
+                      <span className="social-status">{formData.socialLinks.facebook ? 'Connected' : 'Not connected'}</span>
+                    )}
+                  </div>
                 </div>
               </div>
+              
+              {/* Emergency Contact */}
+              <div className="emergency-section">
+                <div className="emergency-header">
+                  <FiShield className="emergency-icon" />
+                  <span>Emergency Contact</span>
+                </div>
+                {isEditing ? (
+                  <div className="emergency-inputs">
+                    <input
+                      type="text"
+                      name="emergencyContact.name"
+                      value={formData.emergencyContact.name}
+                      onChange={handleInputChange}
+                      placeholder="Contact name"
+                      className="emergency-input"
+                    />
+                    <input
+                      type="tel"
+                      name="emergencyContact.phone"
+                      value={formData.emergencyContact.phone}
+                      onChange={handleInputChange}
+                      placeholder="Phone number"
+                      className="emergency-input"
+                    />
+                    <input
+                      type="text"
+                      name="emergencyContact.relationship"
+                      value={formData.emergencyContact.relationship}
+                      onChange={handleInputChange}
+                      placeholder="Relationship (e.g., Mom, Dad)"
+                      className="emergency-input"
+                    />
+                  </div>
+                ) : (
+                  <div className="emergency-display">
+                    {formData.emergencyContact.name ? (
+                      <>
+                        <span className="emergency-name">{formData.emergencyContact.name}</span>
+                        <span className="emergency-phone">{formData.emergencyContact.phone}</span>
+                        <span className="emergency-rel">{formData.emergencyContact.relationship}</span>
+                      </>
+                    ) : (
+                      <span className="emergency-notset">Not configured</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-              <div className="profile-card">
-                <h3 className="profile-card-title">
-                  <FiBell /> Notifications
-                </h3>
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <label>Email Notifications</label>
-                    <p>Receive updates via email</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={formData.preferences.notifications.email}
-                      data-notif="email"
-                      onChange={(e) => {
-                        const newNotifs = { ...formData.preferences.notifications, email: e.target.checked };
-                        handlePreferenceChange('notifications', newNotifs);
-                      }}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
+          {/* Money Story Card */}
+          <div className="profile-card glass-card full-width">
+            <div className="card-header">
+              <FiAward className="card-icon" />
+              <h3>My Money Story</h3>
+            </div>
+            <div className="card-content">
+              {isEditing ? (
+                <textarea
+                  name="moneyStory"
+                  value={formData.moneyStory}
+                  onChange={handleInputChange}
+                  placeholder="Share your financial journey... What motivated you to start budgeting? What are your money goals? What lessons have you learned?"
+                  className="money-story-input"
+                  rows={5}
+                />
+              ) : (
+                <div className="money-story-display">
+                  {formData.moneyStory ? (
+                    <p>{formData.moneyStory}</p>
+                  ) : (
+                    <p className="story-placeholder">
+                      Share your financial journey! Tell us what motivated you to start budgeting, 
+                      your money goals, and the lessons you've learned along the way.
+                      <br /><br />
+                      <em>Your story can inspire others!</em>
+                    </p>
+                  )}
                 </div>
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <label>Push Notifications</label>
-                    <p>Receive push notifications</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={formData.preferences.notifications.push}
-                      data-notif="push"
-                      onChange={(e) => {
-                        const newNotifs = { ...formData.preferences.notifications, push: e.target.checked };
-                        handlePreferenceChange('notifications', newNotifs);
-                      }}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <label>SMS Notifications</label>
-                    <p>Receive updates via SMS</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={formData.preferences.notifications.sms}
-                      data-notif="sms"
-                      onChange={(e) => {
-                        const newNotifs = { ...formData.preferences.notifications, sms: e.target.checked };
-                        handlePreferenceChange('notifications', newNotifs);
-                      }}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
+              )}
+            </div>
+          </div>
+
+          {/* Money Personality Selection (Edit Mode) */}
+          {isEditing && (
+            <div className="profile-card glass-card full-width">
+              <div className="card-header">
+                <FiAward className="card-icon" />
+                <h3>Choose Your Money Personality</h3>
+              </div>
+              <div className="card-content">
+                <div className="personality-grid">
+                  {Object.entries(PERSONALITY_BADGES).map(([name, data]) => (
+                    <label 
+                      key={name} 
+                      className={`personality-option ${formData.moneyPersonality === name ? 'selected' : ''}`}
+                      style={{ '--personality-color': data.color }}
+                    >
+                      <input
+                        type="radio"
+                        name="moneyPersonality"
+                        value={name}
+                        checked={formData.moneyPersonality === name}
+                        onChange={handleInputChange}
+                      />
+                      <span className="personality-name">{name}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="profile-card account-stats">
-                <h3 className="profile-card-title">
-                  <FiTrendingUp /> Account Statistics
-                </h3>
-                <div className="stats-grid">
-                  <div className="stat-item">
-                    <span className="stat-label">Member Since</span>
-                    <span className="stat-value">{formatDate(user?.createdAt)}</span>
+          {/* Financial Stats Edit (Edit Mode) */}
+          {isEditing && (
+            <div className="profile-card glass-card full-width">
+              <div className="card-header">
+                <FiTrendingUp className="card-icon" />
+                <h3>Financial Goals</h3>
+              </div>
+              <div className="card-content">
+                <div className="stats-edit-grid">
+                  <div className="stat-edit-item">
+                    <label>Monthly Budget</label>
+                    <input
+                      type="number"
+                      name="financialStats.monthlyBudget"
+                      value={formData.financialStats.monthlyBudget}
+                      onChange={handleInputChange}
+                      className="stat-input"
+                    />
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Last Updated</span>
-                    <span className="stat-value">{formatDate(user?.updatedAt)}</span>
+                  <div className="stat-edit-item">
+                    <label>Financial Goal</label>
+                    <input
+                      type="number"
+                      name="financialStats.financialGoal"
+                      value={formData.financialStats.financialGoal}
+                      onChange={handleInputChange}
+                      className="stat-input"
+                    />
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Profile Completion</span>
-                    <span className="stat-value">
-                      {Math.round(
-                        ((formData.name ? 10 : 0) +
-                        (formData.phone ? 10 : 0) +
-                        (formData.bio ? 10 : 0) +
-                        (formData.address?.city ? 10 : 0) +
-                        (formData.dateOfBirth ? 10 : 0) +
-                        (formData.profilePhoto ? 10 : 0) +
-                        (formData.socialLinks?.twitter || formData.socialLinks?.linkedin ? 10 : 0)) / 70 * 100
-                      )}%
-                    </span>
+                  <div className="stat-edit-item">
+                    <label>Goal Progress (%)</label>
+                    <input
+                      type="number"
+                      name="financialStats.goalProgress"
+                      value={formData.financialStats.goalProgress}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="100"
+                      className="stat-input"
+                    />
+                  </div>
+                  <div className="stat-edit-item">
+                    <label>Savings Streak (days)</label>
+                    <input
+                      type="number"
+                      name="financialStats.savingsStreak"
+                      value={formData.financialStats.savingsStreak}
+                      onChange={handleInputChange}
+                      className="stat-input"
+                    />
                   </div>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../AuthContext';
 import { 
@@ -22,9 +23,17 @@ API.interceptors.request.use((config) => {
 
 const Settings = () => {
   const { user, setUser } = useContext(AuthContext);
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('account');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+
+  // Handle navigation state from Navbar
+  useEffect(() => {
+    if (location.state?.activeSection) {
+      setActiveSection(location.state.activeSection);
+    }
+  }, [location.state]);
 
   const [profileData, setProfileData] = useState({
     name: user?.name || '',

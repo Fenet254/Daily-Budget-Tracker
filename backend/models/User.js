@@ -68,11 +68,45 @@ const userSchema = new mongoose.Schema({
       default: 'en',
     },
   },
-  // Social links
+  // Social links - replaced with lifestyle-relevant platforms
   socialLinks: {
-    twitter: { type: String, trim: true },
-    linkedin: { type: String, trim: true },
-    github: { type: String, trim: true },
+    whatsapp: { type: String, trim: true },
+    telegram: { type: String, trim: true },
+    facebook: { type: String, trim: true },
+    instagram: { type: String, trim: true },
+  },
+  // Emergency contact
+  emergencyContact: {
+    name: { type: String, trim: true },
+    phone: { type: String, trim: true },
+    relationship: { type: String, trim: true },
+  },
+  // Money Personality Badge
+  moneyPersonality: {
+    type: String,
+    enum: ['Smart Saver', 'Budget Hero', 'Money Mindful', 'Saver Star', 'Frugal Fighter', 'Budget Boss', 'None'],
+    default: 'None',
+  },
+  // Financial Statistics
+  financialStats: {
+    monthlyBudget: { type: Number, default: 0 },
+    savingsStreak: { type: Number, default: 0 }, // days
+    financialGoal: { type: Number, default: 0 },
+    goalProgress: { type: Number, default: 0 }, // percentage
+  },
+  // Lifestyle Preferences (categories user cares about)
+  lifestylePreferences: {
+    food: { type: Boolean, default: true },
+    transport: { type: Boolean, default: true },
+    rent: { type: Boolean, default: false },
+    education: { type: Boolean, default: false },
+    entertainment: { type: Boolean, default: true },
+  },
+  // Money Story / Bio
+  moneyStory: {
+    type: String,
+    maxlength: 1000,
+    trim: true,
   },
 }, {
   timestamps: true // Adds createdAt and updatedAt automatically

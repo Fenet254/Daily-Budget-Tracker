@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend 
@@ -53,6 +54,20 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
+// Get time-based greeting
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return 'Good morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good afternoon';
+  } else if (hour >= 17 && hour < 22) {
+    return 'Good evening';
+  } else {
+    return 'Good night';
+  }
+};
+
 // Animated counter component
 const AnimatedCounter = ({ value, prefix = '' }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -81,6 +96,7 @@ const AnimatedCounter = ({ value, prefix = '' }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [dateRange, setDateRange] = useState('today');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
@@ -189,7 +205,7 @@ const Dashboard = () => {
     if (data.balance > 0) {
       newInsights.push({
         icon: <FiCheckCircle />,
-        text: "Your balance is looking healthy! Keep it up! 👍",
+text: "Your balance is looking healthy! Keep it up!",
         meta: "Positive trend"
       });
     }
@@ -290,7 +306,7 @@ const Dashboard = () => {
         {/* Header Section */}
         <header className="dashboard-header">
           <div className="dashboard-greeting">
-            <h1>Good morning, User 👋</h1>
+            <h1>{user?.name ? `${getTimeBasedGreeting()}, ${user.name}` : `${getTimeBasedGreeting()}!`}</h1>
             <p>Here's your financial overview today</p>
           </div>
           
