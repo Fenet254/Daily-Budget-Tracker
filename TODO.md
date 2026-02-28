@@ -1,15 +1,13 @@
-# Task: Update Dashboard greeting, Contact & Help pages, and remove language selector
+# TODO - Budget Dashboard & Login Page Changes
 
-## TODO List:
-- [x] 1. Plan the task (Done)
-- [ ] 2. Update Dashboard.js - Add time-based greeting function
-- [ ] 3. Update Footer.js - Remove language selector
-- [ ] 4. Update App.js - Add routes for /contact and /help
-- [ ] 5. Create Contact.js - Design contact page
-- [ ] 6. Create Contact.css - Contact page styling
-- [ ] 7. Create Help.js - Design help page
-- [ ] 8. Create Help.css - Help page styling
+## Tasks:
+- [x] 1. Remove AI Insights section from Budgets.js
+- [x] 2. Remove theme toggle button from Budgets.js header
+- [x] 3. Set default theme to light in Budgets.js
+- [x] 4. Make login container narrower in Auth.css
 
-## Implementation Status:
-- Plan: ✅ Approved by user
-- Implementation: In Progress
+## Changes Summary:
+1. ✅ Removed AI insight messages like "Great job, all budget are within limit"
+2. ✅ Removed light/dark mode button from top of budget dashboard  
+3. ✅ Default theme is now light (white theme)
+4. ✅ Made login page container narrower (reduced from 720px to 420px)

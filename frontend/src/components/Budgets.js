@@ -592,11 +592,6 @@ description: 'All budgets are within limits. Keep it up!',
               <FiPlus size={18} />
               Add Budget
             </button>
-            
-            {/* Theme Toggle */}
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-              {theme === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
-            </button>
           </div>
         </header>
 
@@ -654,27 +649,6 @@ description: 'All budgets are within limits. Keep it up!',
           </section>
         )}
 
-        {/* AI Insights Panel */}
-        <section className="ai-insights-section">
-          <div className="ai-insights-header">
-            <h3 className="section-subtitle">
-              <FiSmartphone /> AI Insights
-            </h3>
-          </div>
-          <div className="ai-insights-grid">
-            {getAIInsights().map((insight, index) => (
-              <div key={index} className="insight-card" style={{ borderLeftColor: insight.color }}>
-                <div className="insight-icon" style={{ color: insight.color }}>
-                  {insight.icon}
-                </div>
-                <div className="insight-content">
-                  <h4>{insight.title}</h4>
-                  <p>{insight.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* Budget Progress Cards */}
         <section className="budget-cards-section">

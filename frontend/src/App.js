@@ -11,6 +11,8 @@ import Reports from './components/Reports';
 import SMSImport from './components/SMSImport';
 import Profile from './components/Profile';
 import Settings from './components/Settings';
+import Contact from './components/Contact';
+import Help from './components/Help';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import './App.css';
@@ -43,6 +45,8 @@ function AppContent() {
           <Route path="/sms-import" element={<ProtectedRoute><SMSImport /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
+          <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
         </Routes>
       </div>
       

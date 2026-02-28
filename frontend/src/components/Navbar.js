@@ -1,7 +1,6 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
-import axios from 'axios';
 import { 
   FiGrid, 
   FiList, 
@@ -18,18 +17,6 @@ import {
 } from 'react-icons/fi';
 import './Navbar.css';
 
-const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
-});
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -37,47 +24,11 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
-  };
-
-  // Fetch notification count
-  useEffect(() => {
-    const fetchNotificationCount = async () => {
-      try {
-        const res = await API.get('/auth/me');
-        const userData = res.data;
-        // Calculate notification count based on enabled notifications
-        let count = 0;
-        const notifications = userData.preferences?.notifications;
-        if (notifications) {
-          if (notifications.email?.transactionAlerts) count++;
-          if (notifications.email?.weeklyReport) count++;
-          if (notifications.email?.budgetAlerts) count++;
-          if (notifications.push?.transactionAlerts) count++;
-          if (notifications.push?.budgetAlerts) count++;
-          if (notifications.push?.reminders) count++;
-          if (notifications.sms?.transactionAlerts) count++;
-          if (notifications.sms?.budgetAlerts) count++;
-        }
-        setNotificationCount(count);
-      } catch (error) {
-        console.error('Error fetching notification count:', error);
-        setNotificationCount(0);
-      }
-    };
-
-    if (user) {
-      fetchNotificationCount();
-    }
-  }, [user]);
-
-  const handleNotificationClick = () => {
-    navigate('/settings', { state: { activeSection: 'notifications' } });
   };
 
   // Handle scroll effect
@@ -140,11 +91,9 @@ const navLinks = [
         {/* Right Section - Notifications & User */}
         <div className="navbar-actions">
           {/* Notification Bell */}
-          <button className="notification-btn" onClick={handleNotificationClick}>
+          <button className="notification-btn">
             <FiBell />
-            {notificationCount > 0 && (
-              <span className="notification-badge">{notificationCount}</span>
-            )}
+            <span className="notification-badge">3</span>
           </button>
 
           {/* User Avatar Dropdown */}

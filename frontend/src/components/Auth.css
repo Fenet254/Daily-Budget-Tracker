@@ -42,10 +42,9 @@
   z-index: 10;
   min-height: 100vh;
 }
-
 .auth-form-container {
-  width: 100%;
-  max-width: 720px;
+ 
+  max-width: 550px;
   min-height: auto;
   display: flex;
   flex-direction: column;
@@ -59,6 +58,7 @@
   position: relative;
   margin: auto;
 }
+
 
 .auth-logo {
   display: flex;
@@ -297,7 +297,7 @@
   text-decoration: underline;
 }
 
-/* Terms Checkbox */
+
 .terms-checkbox {
   display: flex;
   align-items: flex-start;
@@ -366,7 +366,6 @@
   transform: none;
 }
 
-/* Loading Spinner */
 .spinner {
   width: 20px;
   height: 20px;
@@ -380,7 +379,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Divider */
+
 .auth-divider {
   display: flex;
   align-items: center;
@@ -401,7 +400,7 @@
   color: var(--text-tertiary);
 }
 
-/* Social Login Buttons */
+
 .social-login {
   display: flex;
   gap: var(--space-md);
@@ -508,26 +507,17 @@
   flex-shrink: 0;
 }
 
-/* Theme Toggle - Hidden */
 .theme-toggle {
   display: none;
 }
 
-/* ============================================
-   Right Column - Hero Section (Hidden in new design)
-   ============================================ */
 .auth-hero-section {
   display: none;
 }
 
-/* ============================================
-   Responsive Design
-   ============================================ */
-
-/* Tablet */
 @media (max-width: 1024px) {
   .auth-form-container {
-    max-width: 420px;
+    max-width: 450px;
     padding: var(--space-xl);
   }
 }
