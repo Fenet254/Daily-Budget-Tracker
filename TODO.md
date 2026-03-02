@@ -1,13 +1,35 @@
-# TODO - Budget Dashboard & Login Page Changes
+# Dashboard Modification Plan
 
-## Tasks:
-- [x] 1. Remove AI Insights section from Budgets.js
-- [x] 2. Remove theme toggle button from Budgets.js header
-- [x] 3. Set default theme to light in Budgets.js
-- [x] 4. Make login container narrower in Auth.css
+## Task Summary
+- Remove Smart Insights from dashboard
+- Remove the container holding Quick Actions and Smart Insights
+- Style Quick Action buttons as individual standalone buttons
 
-## Changes Summary:
-1. ✅ Removed AI insight messages like "Great job, all budget are within limit"
-2. ✅ Removed light/dark mode button from top of budget dashboard  
-3. ✅ Default theme is now light (white theme)
-4. ✅ Made login page container narrower (reduced from 720px to 420px)
+## Changes to Dashboard.js
+
+### 1. Remove insights-related code:
+- [ ] Remove `insights` state variable
+- [ ] Remove `generateInsights` function
+- [ ] Remove call to `generateInsights` in `fetchSummary`
+- [ ] Remove FiInfo import (if not used elsewhere)
+
+### 2. Modify Quick Actions section:
+- [ ] Remove `actions-insights-section` wrapper div
+- [ ] Keep `actions-card` as standalone section
+- [ ] Make each action button individually prominent
+
+## Changes to Dashboard.css
+
+### 1. Remove styles:
+- [ ] Remove `.insights-card` styles
+- [ ] Remove `.insight-item` styles
+- [ ] Remove `.actions-insights-section` styles
+
+### 2. Update Quick Action button styles:
+- [ ] Change `.action-btn` from dashed border to solid styled button
+- [ ] Add proper button shadows, colors, and hover effects
+- [ ] Make buttons stand out individually
+
+## Implementation Steps:
+1. Edit Dashboard.js - Remove Smart Insights code and modify structure
+2. Edit Dashboard.css - Remove insights styles and update action button styles

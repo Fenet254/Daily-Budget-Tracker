@@ -49,9 +49,9 @@
   left: 0;
   right: 0;
   height: var(--navbar-height);
-  /* Beautiful background image */
-  background: linear-gradient(135deg, rgba(30, 60, 114, 0.7) 0%, rgba(55, 35, 102, 0.7) 100%),
-              url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1920&q=80');
+  /* Beautiful background image - financial themed */
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 58, 138, 0.75) 50%, rgba(79, 70, 229, 0.65) 100%),
+              url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1920&q=80');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -63,8 +63,8 @@
 
 /* Scrolled state - more opaque with enhanced shadow */
 .navbar-scrolled {
-  background: linear-gradient(135deg, rgba(30, 60, 114, 0.85) 0%, rgba(55, 35, 102, 0.85) 100%),
-              url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1920&q=80');
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 58, 138, 0.9) 50%, rgba(79, 70, 229, 0.8) 100%),
+              url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1920&q=80');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

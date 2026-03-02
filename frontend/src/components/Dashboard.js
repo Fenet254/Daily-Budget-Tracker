@@ -11,7 +11,7 @@ import {
   FiPieChart, FiSavings, FiPlus, FiFileText, FiTarget, FiDownload,
   FiEdit2, FiTrash2, FiArrowRight, FiFilter,
   FiShoppingCart, FiCoffee, FiHome, FiZap, FiMusic, FiTruck,
-  FiAlertCircle, FiCheckCircle, FiInfo, FiX
+  FiAlertCircle, FiCheckCircle, FiX
 } from 'react-icons/fi';
 import { 
   GiMoneyStack, GiExpense, GiPiggyBank, GiWallet 
@@ -101,7 +101,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [insights, setInsights] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [toast, setToast] = useState(null);
@@ -149,11 +148,10 @@ const Dashboard = () => {
   const fetchSummary = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      const res = await axios.get(`http://localhost:5000/reports/summary?startDate=${startDate}&endDate=${endDate}`, {
+      const res = await axios.get(`http://localhost:5000/api/reports/summary?startDate=${startDate}&endDate=${endDate}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setSummary(res.data);
-      generateInsights(res.data);
     } catch (error) {
       console.error('Error fetching summary:', error);
       showToast('Failed to fetch summary data', 'error');
@@ -164,7 +162,7 @@ const Dashboard = () => {
   const fetchRecentTransactions = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      let url = `http://localhost:5000/transactions?limit=5&startDate=${startDate}&endDate=${endDate}`;
+      let url = `http://localhost:5000/api/transactions?limit=5&startDate=${startDate}&endDate=${endDate}`;
       if (selectedCategory !== 'all') {
         url += `&category=${selectedCategory}`;
       }
@@ -180,69 +178,58 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch chart data
+  // Fetch chart data from actual transactions
   const fetchChartData = async () => {
-    // Generate sample chart data
-    const data = [];
-    const days = dateRange === 'today' ? 24 : dateRange === 'week' ? 7 : 30;
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        income: Math.floor(Math.random() * 5000) + 1000,
-        expenses: Math.floor(Math.random() * 3000) + 500,
+    try {
+      const { startDate, endDate } = getDateRange();
+      const res = await axios.get(`http://localhost:5000/api/reports/transactions?startDate=${startDate}&endDate=${endDate}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-    }
-    setChartData(data);
-  };
-
-  // Generate insights based on data
-  const generateInsights = (data) => {
-    const newInsights = [];
-    
-    if (data.balance > 0) {
-      newInsights.push({
-        icon: <FiCheckCircle />,
-text: "Your balance is looking healthy! Keep it up!",
-        meta: "Positive trend"
-      });
-    }
-    
-    if (data.categoryBreakdown) {
-      const categories = Object.entries(data.categoryBreakdown);
-      if (categories.length > 0) {
-        const topCategory = categories.reduce((a, b) => 
-          (a[1]?.expense || 0) > (b[1]?.expense || 0) ? a : b
-        );
-        if (topCategory[1]?.expense > 0) {
-          newInsights.push({
-            icon: <FiAlertCircle />,
-            text: `You spent ${formatCurrency(topCategory[1].expense)} on ${topCategory[0]} this period`,
-            meta: "Highest spending category"
-          });
-        }
+      
+      const transactions = res.data;
+      
+      // Group transactions by date
+      const groupedData = {};
+      const days = dateRange === 'today' ? 1 : dateRange === 'week' ? 7 : 30;
+      
+      // Initialize all days with zero values
+      for (let i = days; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        groupedData[dateKey] = { date: dateKey, income: 0, expenses: 0 };
       }
-    }
-    
-    if (data.totalExpense > data.totalIncome * 0.8) {
-      newInsights.push({
-        icon: <FiAlertCircle />,
-        text: "Your expenses are approaching your income. Consider reducing spending.",
-        meta: "Budget alert"
+      
+      // Sum up transactions by date
+      transactions.forEach(t => {
+        const dateKey = new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (groupedData[dateKey]) {
+          if (t.type === 'income') {
+            groupedData[dateKey].income += t.amount;
+          } else {
+            groupedData[dateKey].expenses += t.amount;
+          }
+        }
       });
+      
+      const data = Object.values(groupedData);
+      setChartData(data);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+      // Fallback to empty data on error
+      const data = [];
+      const days = dateRange === 'today' ? 1 : dateRange === 'week' ? 7 : 30;
+      for (let i = days; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        data.push({
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          income: 0,
+          expenses: 0,
+        });
+      }
+      setChartData(data);
     }
-    
-    if (newInsights.length === 0) {
-      newInsights.push({
-        icon: <FiInfo />,
-        text: "Start adding transactions to get personalized insights",
-        meta: "Get started"
-      });
-    }
-    
-    setInsights(newInsights);
   };
 
   // Show toast notification
@@ -254,12 +241,13 @@ text: "Your balance is looking healthy! Keep it up!",
   // Handle delete transaction
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/transactions/${id}`, {
+      await axios.delete(`http://localhost:5000/api/transactions/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       showToast('Transaction deleted successfully', 'success');
       fetchRecentTransactions();
       fetchSummary();
+      fetchChartData();
     } catch (error) {
       showToast('Failed to delete transaction', 'error');
     }
@@ -513,47 +501,24 @@ text: "Your balance is looking healthy! Keep it up!",
           </div>
         </section>
 
-        {/* Quick Actions & Insights Section */}
-        <section className="actions-insights-section">
-          {/* Quick Actions Panel */}
-          <div className="actions-card">
-            <h3 className="section-title">Quick Actions</h3>
-            <div className="actions-grid">
-              <button className="action-btn" onClick={() => navigate('/transactions')}>
-                <span className="action-btn-icon"><FiPlus /></span>
-                <span className="action-btn-label">Add Transaction</span>
-              </button>
-              <button className="action-btn" onClick={() => navigate('/reports')}>
-                <span className="action-btn-icon"><FiFileText /></span>
-                <span className="action-btn-label">View Reports</span>
-              </button>
-              <button className="action-btn" onClick={() => navigate('/budgets')}>
-                <span className="action-btn-icon"><FiTarget /></span>
-                <span className="action-btn-label">Set Budget</span>
-              </button>
-              <button className="action-btn" onClick={() => handleExport('pdf')}>
-                <span className="action-btn-icon"><FiDownload /></span>
-                <span className="action-btn-label">Export Report</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Smart Insights Card */}
-          <div className="insights-card">
-            <h3 className="section-title">
-              <FiInfo size={20} />
-              Smart Insights
-            </h3>
-            {insights.map((insight, index) => (
-              <div key={index} className="insight-item">
-                <div className="insight-icon">{insight.icon}</div>
-                <div className="insight-content">
-                  <p className="insight-text">{insight.text}</p>
-                  <span className="insight-meta">{insight.meta}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Quick Actions Section */}
+        <section className="quick-actions-section">
+          <button className="quick-action-btn" onClick={() => navigate('/transactions')}>
+            <span className="quick-action-icon"><FiPlus /></span>
+            <span className="quick-action-label">Add Transaction</span>
+          </button>
+          <button className="quick-action-btn" onClick={() => navigate('/reports')}>
+            <span className="quick-action-icon"><FiFileText /></span>
+            <span className="quick-action-label">View Reports</span>
+          </button>
+          <button className="quick-action-btn" onClick={() => navigate('/budgets')}>
+            <span className="quick-action-icon"><FiTarget /></span>
+            <span className="quick-action-label">Set Budget</span>
+          </button>
+          <button className="quick-action-btn" onClick={() => handleExport('pdf')}>
+            <span className="quick-action-icon"><FiDownload /></span>
+            <span className="quick-action-label">Export Report</span>
+          </button>
         </section>
 
         {/* Recent Transactions Section */}

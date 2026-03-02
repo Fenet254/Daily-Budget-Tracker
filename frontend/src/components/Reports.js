@@ -102,11 +102,11 @@ const Reports = () => {
       if (filters.endDate) params.endDate = filters.endDate;
       
       const [summaryRes, transactionsRes] = await Promise.all([
-        axios.get('http://localhost:5000/reports/summary', { 
+        axios.get('http://localhost:5000/api/reports/summary', { 
           params,
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }),
-        axios.get('http://localhost:5000/reports/transactions', { 
+        axios.get('http://localhost:5000/api/reports/transactions', { 
           params,
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })

@@ -1,6 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
+import axios from 'axios';
 import { 
   FiGrid, 
   FiList, 
@@ -17,6 +18,18 @@ import {
 } from 'react-icons/fi';
 import './Navbar.css';
 
+const API = axios.create({
+  baseURL: 'http://localhost:5000/api',
+});
+
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -24,6 +37,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
@@ -40,6 +54,42 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fetch user notification settings to get notification count
+  useEffect(() => {
+    fetchNotificationSettings();
+  }, []);
+
+  const fetchNotificationSettings = async () => {
+    try {
+      const res = await API.get('/auth/me');
+      const userData = res.data;
+      
+      // Calculate notification count based on user's notification preferences
+      const prefs = userData.preferences?.notifications || {};
+      let count = 0;
+      
+      // Count enabled notification channels
+      if (prefs.email?.transactionAlerts) count++;
+      if (prefs.email?.budgetAlerts) count++;
+      if (prefs.push?.transactionAlerts) count++;
+      if (prefs.push?.budgetAlerts) count++;
+      if (prefs.push?.reminders) count++;
+      if (prefs.sms?.transactionAlerts) count++;
+      if (prefs.sms?.budgetAlerts) count++;
+      
+      // If notifications are enabled, show count, otherwise 0
+      setNotificationCount(count > 0 ? count : 0);
+    } catch (error) {
+      console.error('Error fetching notification settings:', error);
+      setNotificationCount(0);
+    }
+  };
+
+  // Handle notification button click - navigate to settings with notifications section
+  const handleNotificationClick = () => {
+    navigate('/settings', { state: { activeSection: 'notifications' } });
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -51,7 +101,7 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-const navLinks = [
+  const navLinks = [
     { path: '/', label: 'Dashboard', icon: <FiGrid /> },
     { path: '/transactions', label: 'Transactions', icon: <FiList /> },
     { path: '/budgets', label: 'Budgets', icon: <FiPieChart /> },
@@ -90,10 +140,12 @@ const navLinks = [
 
         {/* Right Section - Notifications & User */}
         <div className="navbar-actions">
-          {/* Notification Bell */}
-          <button className="notification-btn">
+          {/* Notification Bell - Active and connected to settings */}
+          <button className="notification-btn" onClick={handleNotificationClick} title="Notification Settings">
             <FiBell />
-            <span className="notification-badge">3</span>
+            {notificationCount > 0 && (
+              <span className="notification-badge">{notificationCount}</span>
+            )}
           </button>
 
           {/* User Avatar Dropdown */}

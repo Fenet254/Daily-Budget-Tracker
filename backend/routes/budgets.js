@@ -54,26 +54,30 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorMessage = errors.array().map(err => err.msg).join(', ');
+      return res.status(400).json({ message: errorMessage, error: errorMessage });
     }
 
-    const { category, amount, period, startDate, endDate } = req.body;
+    const { category, amount, period, startDate, endDate, color, note } = req.body;
 
     try {
       const budget = new Budget({
         user: req.user.id,
         category,
-        amount,
+        amount: parseFloat(amount),
         period,
         startDate: startDate || new Date(),
         endDate: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         spent: 0,
+        color: color || '#3B82F6',
+        note: note || '',
       });
 
       await budget.save();
       res.json(budget);
     } catch (error) {
-      res.status(500).json({ message: 'Server error' });
+      console.error('Error saving budget:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
   }
 );
@@ -92,13 +96,24 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
+    // Validate period if provided
+    if (req.body.period && !['daily', 'weekly', 'monthly'].includes(req.body.period)) {
+      return res.status(400).json({ message: 'Invalid period. Must be daily, weekly, or monthly' });
+    }
+
+    // Validate amount if provided
+    if (req.body.amount && isNaN(parseFloat(req.body.amount))) {
+      return res.status(400).json({ message: 'Amount must be a valid number' });
+    }
+
     budget = await Budget.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
 
     res.json(budget);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error updating budget:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

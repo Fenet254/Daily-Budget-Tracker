@@ -65,7 +65,7 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/transactions', {
+      const res = await axios.get('http://localhost:5000/api/transactions', {
         headers: getAuthHeader()
       });
       setTransactions(res.data);
@@ -123,17 +123,17 @@ const Transactions = () => {
     
     try {
       if (editing) {
-        await axios.put(`http://localhost:5000/transactions/${editing}`, transactionData, {
+        await axios.put(`http://localhost:5000/api/transactions/${editing}`, transactionData, {
           headers: getAuthHeader()
         });
-        showToast('Transaction updated successfully!', 'success');
+        showToast('Transaction updated! Budgets have been recalculated.', 'success');
         setEditing(null);
       } else {
-        const response = await axios.post('http://localhost:5000/transactions', transactionData, {
+        const response = await axios.post('http://localhost:5000/api/transactions', transactionData, {
           headers: getAuthHeader()
         });
         console.log('Transaction saved:', response.data);
-        showToast('Transaction added successfully!', 'success');
+        showToast('Transaction added! Your budgets have been updated.', 'success');
       }
       setFormData({ 
         type: formData.type, 
@@ -143,6 +143,8 @@ const Transactions = () => {
         date: new Date().toISOString().split('T')[0] 
       });
       fetchTransactions();
+      // Store flag to refresh budgets when navigating to Budgets page
+      localStorage.setItem('budgetsNeedRefresh', 'true');
     } catch (error) {
       console.error('Error saving transaction:', error);
       const errorMessage = error.response?.data?.message || 'Failed to save transaction';
@@ -167,11 +169,13 @@ const Transactions = () => {
     if (!window.confirm('Are you sure you want to delete this transaction?')) return;
     
     try {
-      await axios.delete(`http://localhost:5000/transactions/${id}`, {
+      await axios.delete(`http://localhost:5000/api/transactions/${id}`, {
         headers: getAuthHeader()
       });
-      showToast('Transaction deleted successfully!', 'success');
+      showToast('Transaction deleted! Budgets have been recalculated.', 'success');
       fetchTransactions();
+      // Store flag to refresh budgets when navigating to Budgets page
+      localStorage.setItem('budgetsNeedRefresh', 'true');
     } catch (error) {
       console.error('Error deleting transaction:', error);
       showToast('Failed to delete transaction', 'error');

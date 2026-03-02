@@ -252,13 +252,20 @@ const Budgets = () => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Check if budgets need refresh after returning from Transactions page
+    const needsRefresh = localStorage.getItem('budgetsNeedRefresh');
+    if (needsRefresh === 'true') {
+      fetchBudgets();
+      localStorage.removeItem('budgetsNeedRefresh');
+    }
   }, [period, selectedMonth, selectedYear]);
 
   // Fetch budgets from API
   const fetchBudgets = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/budgets', getAuthHeader());
+      const res = await axios.get('http://localhost:5000/api/budgets', getAuthHeader());
       setBudgets(res.data);
       setLoading(false);
     } catch (error) {
@@ -292,16 +299,18 @@ const Budgets = () => {
     e.preventDefault();
     try {
       const budgetData = {
-        ...formData,
+        category: formData.category,
         amount: parseFloat(formData.amount),
-        color: selectedColor
+        period: formData.period,
+        color: selectedColor,
+        note: formData.note || ''
       };
       
       if (editingId) {
-        await axios.put(`http://localhost:5000/budgets/${editingId}`, budgetData, getAuthHeader());
+        const res = await axios.put(`http://localhost:5000/api/budgets/${editingId}`, budgetData, getAuthHeader());
         showToast('Budget updated successfully', 'success');
       } else {
-        await axios.post('http://localhost:5000/budgets', budgetData, getAuthHeader());
+        const res = await axios.post('http://localhost:5000/api/budgets', budgetData, getAuthHeader());
         showToast('Budget created successfully', 'success');
         // Trigger confetti for new budget
         setShowConfetti(true);
@@ -311,7 +320,9 @@ const Budgets = () => {
       fetchBudgets();
     } catch (error) {
       console.error('Error saving budget:', error);
-      showToast('Failed to save budget', 'error');
+      // Show more detailed error message if available
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to save budget';
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -332,7 +343,7 @@ const Budgets = () => {
   // Handle delete budget
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/budgets/${id}`, getAuthHeader());
+      await axios.delete(`http://localhost:5000/api/budgets/${id}`, getAuthHeader());
       showToast('Budget deleted successfully', 'success');
       fetchBudgets();
     } catch (error) {
@@ -509,7 +520,7 @@ const Budgets = () => {
       insights.push({
         icon: <FiAward />,
         title: 'Great Job!',
-description: 'All budgets are within limits. Keep it up!',
+        description: 'All budgets are within limits. Keep it up!',
         color: '#8B5CF6'
       });
     }
@@ -546,15 +557,14 @@ description: 'All budgets are within limits. Keep it up!',
     <div className="budgets-page">
       <Confetti active={showConfetti} />
       <div className="budgets-container">
-        {/* Header Section */}
+
         <header className="budgets-header">
           <div className="header-content">
             <h1 className="header-title">Budgets</h1>
-            <p className="header-subtitle">Plan and control your spending by category.</p>
+            <p className="header-subtitle">Plan and control your spending by category. Connected with Transactions.</p>
           </div>
           
           <div className="header-controls">
-            {/* Month Selector */}
             <div className="month-selector">
               <select 
                 value={selectedMonth} 
@@ -575,8 +585,6 @@ description: 'All budgets are within limits. Keep it up!',
                 ))}
               </select>
             </div>
-            
-            {/* Search Bar */}
             <div className="search-bar">
               <FiSearch className="search-icon" />
               <input 
@@ -586,8 +594,7 @@ description: 'All budgets are within limits. Keep it up!',
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
-            {/* Add Budget Button */}
+          
             <button className="add-budget-btn" onClick={openAddModal}>
               <FiPlus size={18} />
               Add Budget
@@ -595,7 +602,6 @@ description: 'All budgets are within limits. Keep it up!',
           </div>
         </header>
 
-        {/* Quick Stats */}
         <section className="quick-stats">
           <div className="stat-card">
             <div className="stat-icon budgeted">
@@ -613,7 +619,7 @@ description: 'All budgets are within limits. Keep it up!',
               <FiTrendingUp size={20} />
             </div>
             <div className="stat-content">
-              <span className="stat-label">Total Spent</span>
+              <span className="stat-label">Total Spent (from Transactions)</span>
               <span className="stat-value">
                 <AnimatedCounter value={totalSpent} />
               </span>
@@ -1068,7 +1074,7 @@ description: 'All budgets are within limits. Keep it up!',
             </button>
             <button type="submit" className="btn-submit">
               <FiPlus size={18} />
-              {modalMode === 'add' ? 'Create Budget' : 'Update Budget'}
+              {modalMode === 'add' ? 'Create Budget' : ' Update Budget'}
             </button>
           </div>
         </form>
