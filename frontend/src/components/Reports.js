@@ -668,7 +668,7 @@ const Reports = () => {
               </div>
             ) : (
               <div className="empty-state">
-                <div className="empty-state-icon">📊</div>
+                <div className="empty-state-icon">R</div>
                 <h3>No transactions found</h3>
                 <p>No transactions found for the selected date range</p>
               </div>

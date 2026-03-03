@@ -94,7 +94,11 @@ router.get('/me', protect, async (req, res) => {
 // Update user profile
 router.put('/profile', protect, async (req, res) => {
   try {
-    const { name, phone, bio, profilePhoto, address, dateOfBirth, preferences, socialLinks } = req.body;
+    const { 
+      name, phone, bio, profilePhoto, address, dateOfBirth, 
+      preferences, socialLinks, emergencyContact, financialStats, 
+      lifestylePreferences, moneyPersonality, moneyStory 
+    } = req.body;
 
     // Build update object
     const updateFields = {};
@@ -106,6 +110,11 @@ router.put('/profile', protect, async (req, res) => {
     if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
     if (preferences) updateFields.preferences = preferences;
     if (socialLinks) updateFields.socialLinks = socialLinks;
+    if (emergencyContact) updateFields.emergencyContact = emergencyContact;
+    if (financialStats) updateFields.financialStats = financialStats;
+    if (lifestylePreferences) updateFields.lifestylePreferences = lifestylePreferences;
+    if (moneyPersonality) updateFields.moneyPersonality = moneyPersonality;
+    if (moneyStory !== undefined) updateFields.moneyStory = moneyStory;
 
     const user = await User.findByIdAndUpdate(
       req.user.id,

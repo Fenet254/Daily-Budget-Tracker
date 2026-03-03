@@ -618,7 +618,7 @@ const Dashboard = () => {
             </table>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon">📊</div>
+<div className="empty-state-icon">C</div>
               <h3>No transactions yet</h3>
               <p>Start tracking your finances by adding your first transaction</p>
             </div>

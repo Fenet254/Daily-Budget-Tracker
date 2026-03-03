@@ -4,27 +4,26 @@ import './Transactions.css';
 
 // Category icons mapping
 const categoryIcons = {
-  'Food': '🍔',
-  'Transport': '🚗',
-  'Utilities': '💡',
-  'Entertainment': '🎮',
-  'Health': '💊',
-  'Salary': '💰',
-  'Shopping': '🛍️',
-  'Education': '📚',
-  'Travel': '✈️',
-  'Other': '📦',
-  'Food & Dining': '🍔',
-  'Transportation': '🚗',
-  'Bills & Utilities': '💡',
-  'Shopping': '🛍️',
-  'Entertainment': '🎮',
-  'Health & Fitness': '💊',
-  'Income': '💰',
-  'Salary': '💰',
-  'Investment': '📈',
-  'Gift': '🎁',
-  'Salary': '💰',
+  'Food': 'F',
+  'Transport': 'T',
+  'Utilities': 'U',
+  'Entertainment': 'E',
+  'Health': 'H',
+  'Salary': 'S',
+  'Shopping': 'Sh',
+  'Education': 'Ed',
+  'Travel': 'Tr',
+  'Other': 'O',
+  'Food & Dining': 'F',
+  'Transportation': 'T',
+  'Bills & Utilities': 'U',
+  'Shopping': 'Sh',
+  'Entertainment': 'E',
+  'Health & Fitness': 'H',
+  'Income': 'I',
+  'Salary': 'S',
+  'Investment': 'In',
+  'Gift': 'G',
 };
 
 // Default categories for income and expense
@@ -197,8 +196,8 @@ const Transactions = () => {
     return formData.type === 'income' ? incomeCategories : expenseCategories;
   };
 
-  const getCategoryIcon = (category) => {
-    return categoryIcons[category] || '📦';
+const getCategoryIcon = (category) => {
+    return categoryIcons[category] || 'O';
   };
 
   const filteredTransactions = transactions.filter(transaction => {
@@ -298,7 +297,7 @@ const Transactions = () => {
             <div className="form-group">
               <label>Category</label>
               <div className="input-wrapper">
-                <span className="input-icon">{getCategoryIcon(formData.category) || '📦'}</span>
+<span className="input-icon">{getCategoryIcon(formData.category) || 'O'}</span>
                 <select
                   name="category"
                   value={formData.category}
@@ -319,7 +318,7 @@ const Transactions = () => {
             <div className="form-group">
               <label>Description</label>
               <div className="input-wrapper">
-                <span className="input-icon">📝</span>
+<span className="input-icon">D</span>
                 <input
                   type="text"
                   name="description"
@@ -334,7 +333,7 @@ const Transactions = () => {
             <div className="form-group">
               <label>Date</label>
               <div className="input-wrapper">
-                <span className="input-icon">📅</span>
+<span className="input-icon">Da</span>
                 <input
                   type="date"
                   name="date"
@@ -349,7 +348,7 @@ const Transactions = () => {
               type="submit" 
               className={`submit-btn ${formData.type === 'income' ? 'income-btn' : 'expense-btn'}`}
             >
-              {editing ? '✏️ Update Transaction' : `➕ Add ${formData.type === 'income' ? 'Income' : 'Expense'}`}
+{editing ? 'Update Transaction' : `Add ${formData.type === 'income' ? 'Income' : 'Expense'}`}
             </button>
 
             {editing && (
@@ -409,7 +408,7 @@ const Transactions = () => {
           {/* Table or Empty State */}
           {filteredTransactions.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">💳</div>
+<div className="empty-state-icon">T</div>
               <h3>No Transactions Yet</h3>
               <p>Start tracking your finances by adding your first transaction above.</p>
             </div>
@@ -456,13 +455,13 @@ const Transactions = () => {
                             onClick={() => handleEdit(transaction)} 
                             className="action-btn edit-btn"
                           >
-                            ✏️ Edit
+                            Edit
                           </button>
                           <button 
                             onClick={() => handleDelete(transaction._id)} 
                             className="action-btn delete-btn"
                           >
-                            🗑️ Delete
+                            Delete
                           </button>
                         </div>
                       </td>

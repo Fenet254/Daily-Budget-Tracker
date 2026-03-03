@@ -294,7 +294,7 @@ const Budgets = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle form submission
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -451,7 +451,7 @@ const Budgets = () => {
         warnings.push({
           type: 'danger',
           icon: <FiAlertCircle />,
-          message: `⚠️ ${budget.category} budget exceeded by ${formatCurrency(budget.spent - budget.amount)}`,
+message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - budget.amount)}`,
           category: budget.category
         });
       } else if (percentage >= 70) {
