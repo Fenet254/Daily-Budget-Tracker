@@ -458,7 +458,6 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
         warnings.push({
           type: 'warning',
           icon: <FiZapIcon />,
-          message: `⚡ You're at ${Math.round(percentage)}% of your ${budget.category} budget`,
           category: budget.category
         });
       }

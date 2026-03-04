@@ -106,17 +106,15 @@ const Dashboard = () => {
   const [toast, setToast] = useState(null);
   const [chartData, setChartData] = useState([]);
 
-  // Load data on mount
   useEffect(() => {
     fetchSummary();
     fetchRecentTransactions();
     fetchChartData();
     
-    // Always set light theme
     document.documentElement.setAttribute('data-theme', 'light');
   }, [dateRange, selectedCategory]);
 
-  // Calculate date range
+
   const getDateRange = () => {
     const now = new Date();
     let startDate, endDate;
@@ -144,7 +142,6 @@ const Dashboard = () => {
     return { startDate: startDate.toISOString(), endDate: endDate.toISOString() };
   };
 
-  // Fetch summary data
   const fetchSummary = async () => {
     try {
       const { startDate, endDate } = getDateRange();
@@ -157,8 +154,6 @@ const Dashboard = () => {
       showToast('Failed to fetch summary data', 'error');
     }
   };
-
-  // Fetch recent transactions
   const fetchRecentTransactions = async () => {
     try {
       const { startDate, endDate } = getDateRange();
@@ -177,8 +172,6 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-
-  // Fetch chart data from actual transactions
   const fetchChartData = async () => {
     try {
       const { startDate, endDate } = getDateRange();
@@ -187,20 +180,16 @@ const Dashboard = () => {
       });
       
       const transactions = res.data;
-      
-      // Group transactions by date
       const groupedData = {};
       const days = dateRange === 'today' ? 1 : dateRange === 'week' ? 7 : 30;
-      
-      // Initialize all days with zero values
+  
       for (let i = days; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         groupedData[dateKey] = { date: dateKey, income: 0, expenses: 0 };
       }
-      
-      // Sum up transactions by date
+    
       transactions.forEach(t => {
         const dateKey = new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         if (groupedData[dateKey]) {
@@ -216,7 +205,7 @@ const Dashboard = () => {
       setChartData(data);
     } catch (error) {
       console.error('Error fetching chart data:', error);
-      // Fallback to empty data on error
+     
       const data = [];
       const days = dateRange === 'today' ? 1 : dateRange === 'week' ? 7 : 30;
       for (let i = days; i >= 0; i--) {
@@ -232,13 +221,10 @@ const Dashboard = () => {
     }
   };
 
-  // Show toast notification
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
-
-  // Handle delete transaction
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/transactions/${id}`, {
@@ -253,13 +239,10 @@ const Dashboard = () => {
     }
   };
 
-  // Handle export
   const handleExport = (format) => {
     showToast(`Exporting data as ${format.toUpperCase()}...`, 'success');
-    // In a real app, this would trigger an API call to generate the report
-  };
 
-  // Get expense breakdown for doughnut chart
+  };
   const getExpenseBreakdown = () => {
     if (!summary?.categoryBreakdown) return [];
     
@@ -272,7 +255,6 @@ const Dashboard = () => {
       }));
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="dashboard">
@@ -291,7 +273,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="dashboard-container">
-        {/* Header Section */}
+      
         <header className="dashboard-header">
           <div className="dashboard-greeting">
             <h1>{user?.name ? `${getTimeBasedGreeting()}, ${user.name}` : `${getTimeBasedGreeting()}!`}</h1>
@@ -322,10 +304,9 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* KPI Cards Section */}
         <section className="kpi-section">
           <div className="kpi-grid">
-            {/* Total Income Card */}
+        
             <div className="kpi-card income">
               <div className="kpi-header">
                 <div className="kpi-icon">

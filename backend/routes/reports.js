@@ -4,10 +4,6 @@ const Budget = require('../models/Budget');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
-
-// @route   GET /reports/summary
-// @desc    Get financial summary
-// @access  Private
 router.get('/summary', protect, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -55,9 +51,6 @@ router.get('/summary', protect, async (req, res) => {
   }
 });
 
-// @route   GET /reports/transactions
-// @desc    Get transaction report
-// @access  Private
 router.get('/transactions', protect, async (req, res) => {
   try {
     const { type, category, startDate, endDate } = req.query;

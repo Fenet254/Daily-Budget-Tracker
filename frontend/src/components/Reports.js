@@ -15,7 +15,6 @@ import {
 } from 'react-icons/gi';
 import './Reports.css';
 
-// Category colors matching Dashboard
 const CATEGORY_COLORS = {
   Food: '#10B981',
   Transport: '#F59E0B',
@@ -29,7 +28,6 @@ const CATEGORY_COLORS = {
   OtherIncome: '#10B981'
 };
 
-// Format currency
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -39,12 +37,9 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
-// Format percentage
 const formatPercent = (value) => {
   return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
 };
-
-// Animated counter component
 const AnimatedCounter = ({ value, prefix = '' }) => {
   const [displayValue, setDisplayValue] = useState(0);
   
@@ -70,7 +65,6 @@ const AnimatedCounter = ({ value, prefix = '' }) => {
   return <span>{prefix}{formatCurrency(displayValue)}</span>;
 };
 
-// Skeleton loading component
 const SkeletonCard = () => (
   <div className="skeleton-card">
     <div className="skeleton skeleton-icon"></div>
@@ -128,7 +122,6 @@ const Reports = () => {
       ? ((data.totalIncome - data.totalExpense) / data.totalIncome * 100) 
       : 0;
     
-    // Savings rate insight
     if (savingsRate >= 20) {
       newInsights.push({
         icon: <FiCheckCircle />,
@@ -151,8 +144,6 @@ const Reports = () => {
         meta: 'Action needed'
       });
     }
-
-    // Category breakdown insights
     if (data.categoryBreakdown) {
       const categories = Object.entries(data.categoryBreakdown);
       const expenseCategories = categories.filter(([_, d]) => d.expense > 0);
@@ -171,7 +162,7 @@ const Reports = () => {
       }
     }
 
-    // Budget status insights
+
     if (data.budgetStatus) {
       const overBudget = data.budgetStatus.filter(b => b.spent > b.budgeted);
       if (overBudget.length > 0) {
@@ -201,8 +192,6 @@ const Reports = () => {
   const applyFilters = () => {
     fetchData();
   };
-
-  // Prepare chart data
   const getCategoryPieData = () => {
     if (!summary.categoryBreakdown) return [];
     
@@ -226,10 +215,8 @@ const Reports = () => {
       isOverBudget: budget.spent > budget.budgeted
     }));
   };
-
-  // Generate line chart data for income vs expenses over time
   const getLineChartData = () => {
-    // Group transactions by date
+
     const groupedData = {};
     
     transactions.forEach(tx => {
@@ -258,9 +245,7 @@ const Reports = () => {
     ? ((summary.totalIncome - summary.totalExpense) / summary.totalIncome * 100) 
     : 0;
 
-  // Export handlers
   const handleExport = (format) => {
-    // In a real app, this would trigger an API call
     alert(`Exporting as ${format.toUpperCase()}...`);
   };
 
@@ -287,7 +272,6 @@ const Reports = () => {
   return (
     <div className="reports">
       <div className="reports-container">
-        {/* Header Section */}
         <header className="reports-header">
           <div className="reports-title-section">
             <h1>Reports</h1>
@@ -325,10 +309,9 @@ const Reports = () => {
           </div>
         </header>
 
-        {/* KPI Cards Section */}
         <section className="kpi-section">
           <div className="kpi-grid">
-            {/* Total Income Card */}
+        
             <div className="kpi-card income">
               <div className="kpi-header">
                 <div className="kpi-icon">
@@ -345,7 +328,7 @@ const Reports = () => {
               </h3>
             </div>
 
-            {/* Total Expenses Card */}
+        
             <div className="kpi-card expense">
               <div className="kpi-header">
                 <div className="kpi-icon">
@@ -362,7 +345,6 @@ const Reports = () => {
               </h3>
             </div>
 
-            {/* Balance Card */}
             <div className="kpi-card balance">
               <div className="kpi-header">
                 <div className="kpi-icon">
@@ -379,7 +361,6 @@ const Reports = () => {
               </h3>
             </div>
 
-            {/* Savings Rate Card */}
             <div className="kpi-card savings">
               <div className="kpi-header">
                 <div className="kpi-icon">
@@ -398,9 +379,9 @@ const Reports = () => {
           </div>
         </section>
 
-        {/* Charts Section */}
+        
         <section className="charts-section">
-          {/* Line Chart - Income vs Expenses */}
+        
           <div className="chart-card">
             <div className="chart-header">
               <h3 className="chart-title">Income vs Expenses (Monthly Trend)</h3>
@@ -478,7 +459,7 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Pie Chart - Expense Distribution */}
+      
           <div className="chart-card">
             <div className="chart-header">
               <h3 className="chart-title">Expense Distribution by Category</h3>
@@ -524,7 +505,7 @@ const Reports = () => {
           </div>
         </section>
 
-        {/* Budget vs Actual Section */}
+    
         <section className="budget-section">
           <div className="chart-card full-width">
             <div className="chart-header">
@@ -563,7 +544,6 @@ const Reports = () => {
           </div>
         </section>
 
-        {/* Insights Section */}
         <section className="insights-section">
           <div className="insights-card">
             <div className="insights-header">
@@ -595,7 +575,7 @@ const Reports = () => {
           </div>
         </section>
 
-        {/* Export & Actions Section */}
+       
         <section className="actions-section">
           <div className="actions-card">
             <h3 className="section-title">Export & Actions</h3>
@@ -620,7 +600,7 @@ const Reports = () => {
           </div>
         </section>
 
-        {/* Transaction Report Table */}
+
         <section className="transactions-section">
           <div className="transactions-card">
             <div className="transactions-header">
