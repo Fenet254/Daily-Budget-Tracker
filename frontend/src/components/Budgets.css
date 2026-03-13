@@ -976,35 +976,37 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.2s ease forwards;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
   background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   width: 90%;
-  max-width: 500px;
+  max-width: 450px;
   max-height: 90vh;
   overflow-y: auto;
   animation: scaleIn 0.3s ease forwards;
+  border: 1px solid var(--border-color);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg);
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h3 {
-  font-size: var(--font-size-lg);
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -1014,154 +1016,139 @@
   width: 36px;
   height: 36px;
   border: none;
-  background: transparent;
+  background: var(--bg-tertiary);
   color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
 .modal-close:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+  background: var(--color-expense);
+  color: white;
 }
 
 .modal-body {
-  padding: var(--space-lg);
+  padding: 24px;
 }
 
 /* Form Styles */
 .budget-form .form-group {
-  margin-bottom: var(--space-lg);
+  margin-bottom: 20px;
 }
 
 .budget-form label {
   display: block;
-  font-size: var(--font-size-sm);
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
-  margin-bottom: var(--space-sm);
+  margin-bottom: 8px;
 }
 
 .budget-form input,
 .budget-form select {
   width: 100%;
-  padding: var(--space-md);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 15px;
   color: var(--text-primary);
   background: var(--bg-secondary);
-  transition: all var(--transition-fast);
+  transition: all 0.2s;
 }
 
 .budget-form input:focus,
 .budget-form select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
-/* Color Selector */
-.color-selector {
-  display: flex;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-
-.color-option {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.color-option:hover {
-  transform: scale(1.1);
-}
-
-.color-option.active {
-  border-color: var(--text-primary);
-  box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px currentColor;
+.budget-form input::placeholder {
+  color: var(--text-tertiary);
 }
 
 /* Period Toggle */
 .period-toggle {
   display: flex;
   background: var(--bg-tertiary);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   padding: 4px;
 }
 
 .period-option {
   flex: 1;
-  padding: var(--space-sm) var(--space-md);
+  padding: 10px 16px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: 14px;
   font-weight: 500;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s;
+}
+
+.period-option:hover {
+  color: var(--text-primary);
 }
 
 .period-option.active {
   background: var(--bg-card);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
+  color: var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Form Actions */
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-md);
-  padding-top: var(--space-md);
+  gap: 12px;
+  padding-top: 20px;
   border-top: 1px solid var(--border-color);
+  margin-top: 8px;
 }
 
 .btn-cancel {
-  padding: var(--space-md) var(--space-xl);
-  border: 1px solid var(--border-color);
+  padding: 12px 24px;
+  border: 2px solid var(--border-color);
   background: transparent;
   color: var(--text-secondary);
-  font-size: var(--font-size-base);
+  font-size: 14px;
   font-weight: 500;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s;
 }
 
 .btn-cancel:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
+  border-color: var(--text-tertiary);
 }
 
 .btn-submit {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md) var(--space-xl);
+  gap: 8px;
+  padding: 12px 28px;
   border: none;
   background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
   color: white;
-  font-size: var(--font-size-base);
+  font-size: 14px;
   font-weight: 600;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .btn-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .btn-submit:active {

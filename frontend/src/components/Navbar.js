@@ -174,16 +174,30 @@ const Navbar = () => {
                   </div>
                 </div>
                 <div className="dropdown-divider"></div>
-                <Link to="/profile" className="dropdown-item">
+                <Link 
+                  to="/profile" 
+                  className="dropdown-item"
+                  onClick={() => setIsUserDropdownOpen(false)}
+                >
                   <FiUser />
                   <span>Profile</span>
                 </Link>
-                <Link to="/settings" className="dropdown-item">
+                <Link 
+                  to="/settings" 
+                  className="dropdown-item"
+                  onClick={() => setIsUserDropdownOpen(false)}
+                >
                   <FiSettings />
                   <span>Settings</span>
                 </Link>
                 <div className="dropdown-divider"></div>
-                <button onClick={handleLogout} className="dropdown-item dropdown-item-logout">
+                <button 
+                  onClick={() => {
+                    setIsUserDropdownOpen(false);
+                    handleLogout();
+                  }} 
+                  className="dropdown-item dropdown-item-logout"
+                >
                   <FiLogOut />
                   <span>Logout</span>
                 </button>

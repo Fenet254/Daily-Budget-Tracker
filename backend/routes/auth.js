@@ -5,6 +5,35 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Debug endpoint - REMOVE IN PRODUCTION
+router.post('/debug-login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  try {
+    console.log('Debug login attempt:', email);
+    
+    let user = await User.findOne({ email });
+    console.log('User found:', user ? user.email : 'NOT FOUND');
+    
+    if (!user) {
+      return res.status(400).json({ msg: 'User not found', email });
+    }
+    
+    const isMatch = await user.matchPassword(password);
+    console.log('Password match:', isMatch);
+    
+    res.json({ 
+      found: true, 
+      email: user.email, 
+      passwordMatch: isMatch,
+      passwordHash: user.password.substring(0, 20) + '...'
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // Register
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
@@ -49,7 +78,7 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
@@ -100,32 +129,32 @@ router.put('/profile', protect, async (req, res) => {
       lifestylePreferences, moneyPersonality, moneyStory 
     } = req.body;
 
-    // Build update object
+    // Build update object - only include fields that are provided
     const updateFields = {};
-    if (name) updateFields.name = name;
+    if (name !== undefined) updateFields.name = name;
     if (phone !== undefined) updateFields.phone = phone;
     if (bio !== undefined) updateFields.bio = bio;
     if (profilePhoto !== undefined) updateFields.profilePhoto = profilePhoto;
-    if (address) updateFields.address = address;
-    if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
-    if (preferences) updateFields.preferences = preferences;
-    if (socialLinks) updateFields.socialLinks = socialLinks;
-    if (emergencyContact) updateFields.emergencyContact = emergencyContact;
-    if (financialStats) updateFields.financialStats = financialStats;
-    if (lifestylePreferences) updateFields.lifestylePreferences = lifestylePreferences;
-    if (moneyPersonality) updateFields.moneyPersonality = moneyPersonality;
+    if (address !== undefined) updateFields.address = address;
+    if (dateOfBirth !== undefined) updateFields.dateOfBirth = dateOfBirth;
+    if (preferences !== undefined) updateFields.preferences = preferences;
+    if (socialLinks !== undefined) updateFields.socialLinks = socialLinks;
+    if (emergencyContact !== undefined) updateFields.emergencyContact = emergencyContact;
+    if (financialStats !== undefined) updateFields.financialStats = financialStats;
+    if (lifestylePreferences !== undefined) updateFields.lifestylePreferences = lifestylePreferences;
+    if (moneyPersonality !== undefined) updateFields.moneyPersonality = moneyPersonality;
     if (moneyStory !== undefined) updateFields.moneyStory = moneyStory;
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
       { $set: updateFields },
-      { new: true, runValidators: true }
+      { new: true, runValidators: false }
     ).select('-password');
 
     res.json(user);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Profile update error:', err.message);
+    res.status(500).json({ msg: 'Failed to update profile', error: err.message });
   }
 });
 

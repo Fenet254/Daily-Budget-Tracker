@@ -10,11 +10,11 @@ import {
   FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, 
   FiPieChart, FiSavings, FiPlus, FiFileText, FiTarget, FiDownload,
   FiEdit2, FiTrash2, FiArrowRight, FiFilter,
-  FiShoppingCart, FiCoffee, FiHome, FiZap, FiMusic, FiTruck,
+  FiShoppingCart, FiCoffee, FiHome, FiMusic, FiTruck,
   FiAlertCircle, FiCheckCircle, FiX
 } from 'react-icons/fi';
 import { 
-  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet 
+  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet, GiLightningBolt 
 } from 'react-icons/gi';
 import './Dashboard.css';
 
@@ -24,7 +24,7 @@ const getCategoryIcon = (category) => {
     food: <FiCoffee />,
     transport: <FiTruck />,
     rent: <FiHome />,
-    utilities: <FiZap />,
+    utilities: <GiLightningBolt />,
     entertainment: <FiMusic />,
     shopping: <FiShoppingCart />,
     salary: <FiDollarSign />,
@@ -100,11 +100,26 @@ const Dashboard = () => {
   const [dateRange, setDateRange] = useState('today');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
+  const [prevSummary, setPrevSummary] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [toast, setToast] = useState(null);
   const [chartData, setChartData] = useState([]);
+  const [greeting, setGreeting] = useState(getTimeBasedGreeting());
+
+  // Update greeting every minute to reflect time changes
+  useEffect(() => {
+    const updateGreeting = () => {
+      setGreeting(getTimeBasedGreeting());
+    };
+    
+    // Update immediately and then every minute
+    updateGreeting();
+    const interval = setInterval(updateGreeting, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     fetchSummary();
@@ -142,6 +157,63 @@ const Dashboard = () => {
     return { startDate: startDate.toISOString(), endDate: endDate.toISOString() };
   };
 
+  // Get previous period date range for percentage calculation
+  const getPrevDateRange = () => {
+    const now = new Date();
+    let startDate, endDate;
+    
+    switch (dateRange) {
+      case 'today':
+        // Previous day
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() - 1);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case 'week':
+        // Previous week (7-14 days ago)
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 14);
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() - 8);
+        break;
+      case 'month':
+        // Previous month
+        startDate = new Date(now);
+        startDate.setMonth(now.getMonth() - 2);
+        endDate = new Date(now);
+        endDate.setMonth(now.getMonth() - 1);
+        endDate.setDate(0); // Last day of previous month
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      default:
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() - 1);
+        endDate.setHours(23, 59, 59, 999);
+    }
+    
+    return { startDate: startDate.toISOString(), endDate: endDate.toISOString() };
+  };
+
+  // Calculate percentage change between current and previous period
+  const calculatePercentageChange = (current, previous) => {
+    if (!previous || previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    return ((current - previous) / previous) * 100;
+  };
+
+  // Format percentage for display
+  const formatPercentage = (value) => {
+    const prefix = value >= 0 ? '+' : '';
+    return `${prefix}${value.toFixed(1)}%`;
+  };
+
   const fetchSummary = async () => {
     try {
       const { startDate, endDate } = getDateRange();
@@ -149,6 +221,13 @@ const Dashboard = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setSummary(res.data);
+      
+      // Fetch previous period data for comparison
+      const { startDate: prevStartDate, endDate: prevEndDate } = getPrevDateRange();
+      const prevRes = await axios.get(`http://localhost:5000/api/reports/summary?startDate=${prevStartDate}&endDate=${prevEndDate}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setPrevSummary(prevRes.data);
     } catch (error) {
       console.error('Error fetching summary:', error);
       showToast('Failed to fetch summary data', 'error');
@@ -276,7 +355,7 @@ const Dashboard = () => {
       
         <header className="dashboard-header">
           <div className="dashboard-greeting">
-            <h1>{user?.name ? `${getTimeBasedGreeting()}, ${user.name}` : `${getTimeBasedGreeting()}!`}</h1>
+<h1>{user?.name ? `${greeting}, ${user.name}` : `${greeting}!`}</h1>
             <p>Here's your financial overview today</p>
           </div>
           
@@ -312,9 +391,9 @@ const Dashboard = () => {
                 <div className="kpi-icon">
                   <FiTrendingUp size={24} />
                 </div>
-                <div className="kpi-trend up">
-                  <FiTrendingUp size={14} />
-                  <span>+12.5%</span>
+                <div className={`kpi-trend ${calculatePercentageChange(summary?.totalIncome || 0, prevSummary?.totalIncome || 0) >= 0 ? 'up' : 'down'}`}>
+                  {calculatePercentageChange(summary?.totalIncome || 0, prevSummary?.totalIncome || 0) >= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
+                  <span>{formatPercentage(calculatePercentageChange(summary?.totalIncome || 0, prevSummary?.totalIncome || 0))}</span>
                 </div>
               </div>
               <p className="kpi-label">Total Income</p>
@@ -329,9 +408,9 @@ const Dashboard = () => {
                 <div className="kpi-icon">
                   <FiTrendingDown size={24} />
                 </div>
-                <div className="kpi-trend down">
-                  <FiTrendingDown size={14} />
-                  <span>-8.2%</span>
+                <div className={`kpi-trend ${calculatePercentageChange(summary?.totalExpense || 0, prevSummary?.totalExpense || 0) <= 0 ? 'up' : 'down'}`}>
+                  {calculatePercentageChange(summary?.totalExpense || 0, prevSummary?.totalExpense || 0) <= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
+                  <span>{formatPercentage(calculatePercentageChange(summary?.totalExpense || 0, prevSummary?.totalExpense || 0))}</span>
                 </div>
               </div>
               <p className="kpi-label">Total Expenses</p>
@@ -346,9 +425,9 @@ const Dashboard = () => {
                 <div className="kpi-icon">
                   <GiWallet size={24} />
                 </div>
-                <div className="kpi-trend up">
-                  <FiTrendingUp size={14} />
-                  <span>+5.3%</span>
+                <div className={`kpi-trend ${calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)) >= 0 ? 'up' : 'down'}`}>
+                  {calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)) >= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
+                  <span>{formatPercentage(calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)))}</span>
                 </div>
               </div>
               <p className="kpi-label">Current Balance</p>
@@ -363,9 +442,9 @@ const Dashboard = () => {
                 <div className="kpi-icon">
                   <GiPiggyBank size={24} />
                 </div>
-                <div className="kpi-trend up">
-                  <FiTrendingUp size={14} />
-                  <span>+15.7%</span>
+                <div className={`kpi-trend ${calculatePercentageChange(Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2, Math.max(0, ((prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0))) * 0.2) >= 0 ? 'up' : 'down'}`}>
+                  {calculatePercentageChange(Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2, Math.max(0, ((prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0))) * 0.2) >= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
+                  <span>{formatPercentage(calculatePercentageChange(Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2, Math.max(0, ((prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0))) * 0.2))}</span>
                 </div>
               </div>
               <p className="kpi-label">Savings</p>

@@ -374,7 +374,7 @@
 }
 
 /* ============================================
-   Quick Actions Section (Individual Buttons)
+   Quick Actions Section (Styled Buttons)
    ============================================ */
 .quick-actions-section {
   display: grid;
@@ -383,30 +383,84 @@
   margin-bottom: var(--space-xl);
 }
 
+/* Base Styled Button */
 .quick-action-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: var(--space-md);
-  padding: var(--space-xl) var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
   background: var(--bg-card);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border: none;
+  border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: all var(--transition-base);
-  color: var(--text-secondary);
-  box-shadow: var(--shadow-card);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
 }
 
-.quick-action-btn:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
+/* Subtle gradient overlay on hover */
+.quick-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.quick-action-btn:hover::before {
+  opacity: 1;
+}
+
+/* Button 1 - Add Transaction (Green/Teal) */
+.quick-action-btn:nth-child(1) {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: white;
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card-hover);
 }
 
+.quick-action-btn:nth-child(1):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Button 2 - View Reports (Blue) */
+.quick-action-btn:nth-child(2) {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  color: white;
+}
+
+.quick-action-btn:nth-child(2):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+/* Button 3 - Set Budget (Purple) */
+.quick-action-btn:nth-child(3) {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  color: white;
+}
+
+.quick-action-btn:nth-child(3):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+}
+
+/* Button 4 - Export Report (Orange) */
+.quick-action-btn:nth-child(4) {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: white;
+}
+
+.quick-action-btn:nth-child(4):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+/* Animation delays */
 .quick-action-btn:nth-child(1) {
   animation: fadeInUp 0.5s ease forwards;
   opacity: 0;
@@ -431,21 +485,31 @@
   animation-delay: 0.75s;
 }
 
+/* Icon Container */
 .quick-action-icon {
-  font-size: 28px;
-  color: var(--color-primary);
-  transition: color var(--transition-fast);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
 }
 
 .quick-action-btn:hover .quick-action-icon {
-  color: white;
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(255, 255, 255, 0.3);
 }
 
+/* Button Label */
 .quick-action-label {
   font-size: var(--font-size-sm);
   font-weight: 600;
-  text-align: center;
-  transition: color var(--transition-fast);
+  text-align: left;
+  white-space: nowrap;
 }
 
 /* ============================================
@@ -812,16 +876,45 @@
     justify-content: space-between;
   }
   
+  /* 2x2 Grid for KPI cards on mobile */
   .kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .kpi-amount {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
   
+  .kpi-card {
+    padding: var(--space-md);
+  }
+  
+  .kpi-label {
+    font-size: var(--font-size-xs);
+  }
+  
+  /* 2x2 Grid for Quick Action buttons on mobile */
   .quick-actions-section {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Make quick action buttons more compact on mobile */
+  .quick-action-btn {
+    padding: var(--space-sm) var(--space-md);
+    flex-direction: column;
+    gap: var(--space-xs);
+    text-align: center;
+  }
+  
+  .quick-action-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  
+  .quick-action-label {
+    font-size: var(--font-size-xs);
+    white-space: normal;
   }
   
   .transactions-table th:nth-child(3),

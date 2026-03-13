@@ -18,10 +18,10 @@ router.get('/', protect, async (req, res) => {
       const startDate = budget.startDate || new Date(new Date().setDate(1)); // Start of month
       const endDate = budget.endDate || new Date();
       
-      // Get transactions for this category in the budget period
+      // Get transactions for this category in the budget period (case-insensitive)
       const transactions = await Transaction.find({
         user: req.user.id,
-        category: budget.category,
+        category: { $regex: new RegExp('^' + budget.category + '$', 'i') },
         type: 'expense',
         date: { $gte: startDate, $lte: endDate }
       });

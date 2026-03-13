@@ -1,35 +1,10 @@
-# Dashboard Modification Plan
+# Task Progress: Fix Backend Server Port Conflict
 
-## Task Summary
-- Remove Smart Insights from dashboard
-- Remove the container holding Quick Actions and Smart Insights
-- Style Quick Action buttons as individual standalone buttons
+## Steps from Approved Plan:
+- [x] Create TODO.md with steps
+- [x] Step 1: Edit backend/server.js to change default PORT from 5000 to 5001 ✅ Complete
+- [ ] Step 2: cd backend && npm start to test server on port 5001
+- [ ] Step 3: Verify API endpoint http://localhost:5001/
+- [ ] Step 4: Mark complete and attempt_completion
 
-## Changes to Dashboard.js
-
-### 1. Remove insights-related code:
-- [ ] Remove `insights` state variable
-- [ ] Remove `generateInsights` function
-- [ ] Remove call to `generateInsights` in `fetchSummary`
-- [ ] Remove FiInfo import (if not used elsewhere)
-
-### 2. Modify Quick Actions section:
-- [ ] Remove `actions-insights-section` wrapper div
-- [ ] Keep `actions-card` as standalone section
-- [ ] Make each action button individually prominent
-
-## Changes to Dashboard.css
-
-### 1. Remove styles:
-- [ ] Remove `.insights-card` styles
-- [ ] Remove `.insight-item` styles
-- [ ] Remove `.actions-insights-section` styles
-
-### 2. Update Quick Action button styles:
-- [ ] Change `.action-btn` from dashed border to solid styled button
-- [ ] Add proper button shadows, colors, and hover effects
-- [ ] Make buttons stand out individually
-
-## Implementation Steps:
-1. Edit Dashboard.js - Remove Smart Insights code and modify structure
-2. Edit Dashboard.css - Remove insights styles and update action button styles
+Current: Edit complete. Provide command to test: Run in new terminal `cd backend` then `npm start` to verify server starts on port 5001.

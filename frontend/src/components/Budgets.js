@@ -7,12 +7,12 @@ import {
 import { 
   FiPlus, FiEdit2, FiTrash2, FiDownload, FiFilter, FiSun, FiMoon,
   FiAlertCircle, FiCheckCircle, FiX, FiChevronDown, FiTrendingUp,
-  FiCoffee, FiTruck, FiHome, FiZap, FiMusic, FiShoppingCart, FiDollarSign,
+  FiCoffee, FiTruck, FiHome, FiMusic, FiShoppingCart, FiDollarSign,
   FiCreditCard, FiTarget, FiCalendar, FiFileText, FiGrid, FiList, FiSearch,
-  FiTrendingDown, FiTrendingUp as FiTrendingUpIcon, FiZap as FiZapIcon,
+  FiTrendingDown, FiTrendingUp as FiTrendingUpIcon,
   FiAward, FiSmartphone, FiShare2
 } from 'react-icons/fi';
-import { GiPiggyBank, GiWallet, GiTakeMyMoney, GiMoneyStack } from 'react-icons/gi';
+import { GiPiggyBank, GiWallet, GiTakeMyMoney, GiMoneyStack, GiLightningBolt } from 'react-icons/gi';
 import './Budgets.css';
 
 // Confetti component for celebration
@@ -70,7 +70,7 @@ const getCategoryIcon = (category) => {
     food: <FiCoffee />,
     transport: <FiTruck />,
     rent: <FiHome />,
-    utilities: <FiZap />,
+    utilities: <GiLightningBolt />,
     entertainment: <FiMusic />,
     shopping: <FiShoppingCart />,
     salary: <FiDollarSign />,
@@ -85,7 +85,7 @@ const CATEGORY_OPTIONS = [
   { value: 'food', label: 'Food', icon: <FiCoffee />, color: '#10B981' },
   { value: 'transport', label: 'Transport', icon: <FiTruck />, color: '#F59E0B' },
   { value: 'rent', label: 'Rent', icon: <FiHome />, color: '#6366F1' },
-  { value: 'utilities', label: 'Utilities', icon: <FiZap />, color: '#8B5CF6' },
+  { value: 'utilities', label: 'Utilities', icon: <GiLightningBolt />, color: '#8B5CF6' },
   { value: 'entertainment', label: 'Entertainment', icon: <FiMusic />, color: '#EC4899' },
   { value: 'shopping', label: 'Shopping', icon: <FiShoppingCart />, color: '#14B8A6' },
   { value: 'health', label: 'Health', icon: <FiCreditCard />, color: '#EF4444' },
@@ -321,7 +321,22 @@ const Budgets = () => {
     } catch (error) {
       console.error('Error saving budget:', error);
       // Show more detailed error message if available
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to save budget';
+      let errorMessage = 'Failed to save budget';
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Your session has expired. Please log in again.';
+          // Optionally redirect to login
+          // window.location.href = '/login';
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       showToast(errorMessage, 'error');
     }
   };
@@ -457,7 +472,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
       } else if (percentage >= 70) {
         warnings.push({
           type: 'warning',
-          icon: <FiZapIcon />,
+          icon: <GiLightningBolt />,
           category: budget.category
         });
       }
@@ -601,61 +616,9 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
           </div>
         </header>
 
-        <section className="quick-stats">
-          <div className="stat-card">
-            <div className="stat-icon budgeted">
-              <FiTarget size={20} />
-            </div>
-            <div className="stat-content">
-              <span className="stat-label">Total Budgeted</span>
-              <span className="stat-value">
-                <AnimatedCounter value={totalBudgeted} />
-              </span>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon spent">
-              <FiTrendingUp size={20} />
-            </div>
-            <div className="stat-content">
-              <span className="stat-label">Total Spent (from Transactions)</span>
-              <span className="stat-value">
-                <AnimatedCounter value={totalSpent} />
-              </span>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon remaining">
-              <GiWallet size={20} />
-            </div>
-            <div className="stat-content">
-              <span className="stat-label">Remaining Balance</span>
-              <span className="stat-value">
-                <AnimatedCounter value={totalRemaining} />
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* Smart Warnings */}
-        {getWarnings().length > 0 && (
-          <section className="warnings-section">
-            <h3 className="section-subtitle">
-              <FiAlertCircle /> Alerts & Insights
-            </h3>
-            <div className="warnings-grid">
-              {getWarnings().map((warning, index) => (
-                <div key={index} className={`warning-card ${warning.type}`}>
-                  <span className="warning-icon">{warning.icon}</span>
-                  <span className="warning-message">{warning.message}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
 
-        {/* Budget Progress Cards */}
+
         <section className="budget-cards-section">
           <div className="section-header">
             <h2 className="section-title">Budget Categories</h2>
@@ -1038,21 +1001,6 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
               >
                 Monthly
               </button>
-            </div>
-          </div>
-          
-          <div className="form-group">
-            <label>Color</label>
-            <div className="color-selector">
-              {['#10B981', '#F59E0B', '#3B82F6', '#6366F1', '#EC4899', '#EF4444', '#8B5CF6', '#14B8A6'].map(color => (
-                <button
-                  key={color}
-                  type="button"
-                  className={`color-option ${selectedColor === color ? 'active' : ''}`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setSelectedColor(color)}
-                />
-              ))}
             </div>
           </div>
           

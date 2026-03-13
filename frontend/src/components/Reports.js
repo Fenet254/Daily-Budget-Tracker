@@ -8,10 +8,12 @@ import {
   FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, 
   FiPieChart, FiSavings, FiDownload, FiFileText, FiPrinter,
   FiCalendar, FiFilter, FiAlertCircle, FiCheckCircle, FiInfo,
-  FiArrowUp, FiArrowDown, FiRefreshCw
+  FiArrowUp, FiArrowDown, FiRefreshCw, FiTarget, FiActivity
 } from 'react-icons/fi';
+import { GiLightningBolt } from 'react-icons/gi';
 import { 
-  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet, GiTakeMyMoney
+  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet, GiTakeMyMoney,
+  GiCircularArrows, GiUpgrade
 } from 'react-icons/gi';
 import './Reports.css';
 
@@ -245,6 +247,35 @@ const Reports = () => {
     ? ((summary.totalIncome - summary.totalExpense) / summary.totalIncome * 100) 
     : 0;
 
+  // Calculate budget overview data
+  const getBudgetOverviewData = () => {
+    if (!summary.budgetStatus || summary.budgetStatus.length === 0) {
+      return { status: 'none', overBudget: [], totalBudget: 0, totalSpent: 0, percentage: 0 };
+    }
+    const overBudget = summary.budgetStatus.filter(b => b.spent > b.budgeted);
+    const totalBudget = summary.budgetStatus.reduce((sum, b) => sum + b.budgeted, 0);
+    const totalSpent = summary.budgetStatus.reduce((sum, b) => sum + b.spent, 0);
+    const percentage = (totalSpent / totalBudget) * 100;
+    
+    let status = 'neutral';
+    if (overBudget.length === 0 && percentage <= 70) status = 'excellent';
+    else if (overBudget.length === 0 && percentage <= 90) status = 'good';
+    else if (overBudget.length > 0) status = 'warning';
+    
+    return { status, overBudget, totalBudget, totalSpent, percentage };
+  };
+  
+  const budgetOverview = getBudgetOverviewData();
+
+  // Calculate budget progress for the circular progress bar
+  const budgetProgress = (() => {
+    if (!summary.budgetStatus || summary.budgetStatus.length === 0) return 0;
+    const totalSpent = summary.budgetStatus.reduce((sum, b) => sum + b.spent, 0);
+    const totalBudgeted = summary.budgetStatus.reduce((sum, b) => sum + b.budgeted, 0);
+    if (totalBudgeted === 0) return 0;
+    return Math.min((totalSpent / totalBudgeted) * 326.7, 326.7);
+  })();
+
   const handleExport = (format) => {
     alert(`Exporting as ${format.toUpperCase()}...`);
   };
@@ -375,6 +406,182 @@ const Reports = () => {
               <h3 className="kpi-amount">
                 {savingsRate.toFixed(1)}%
               </h3>
+            </div>
+          </div>
+        </section>
+
+        {/* Beautiful Budget Executive Summary Section */}
+        <section className="budget-overview-section">
+          <div className="budget-overview-header">
+            <div className="budget-overview-title">
+              <GiCircularArrows size={28} className="overview-icon" />
+              <div>
+                <h2>Budget Executive Summary</h2>
+                <p>Your complete budget overview at a glance</p>
+              </div>
+            </div>
+            <div className="budget-health-badge">
+              {summary.budgetStatus && summary.budgetStatus.length > 0 ? (
+                budgetOverview.status === 'excellent' ? (
+                  <span className="health-badge excellent"><FiCheckCircle /> Excellent</span>
+                ) : budgetOverview.status === 'good' ? (
+                  <span className="health-badge good"><FiInfo /> On Track</span>
+                ) : budgetOverview.status === 'warning' ? (
+                  <span className="health-badge warning"><FiAlertCircle /> Needs Attention</span>
+                ) : (
+                  <span className="health-badge neutral"><FiActivity /> Normal</span>
+                )
+              ) : (
+                <span className="health-badge neutral"><FiTarget /> No Budgets</span>
+              )}
+            </div>
+          </div>
+          
+          <div className="budget-overview-grid">
+            {/* Main Circular Progress Card */}
+            <div className="budget-progress-card">
+              <div className="circular-progress-container">
+                <svg className="circular-progress" viewBox="0 0 120 120">
+                  <defs>
+                    <linearGradient id="budgetProgressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#10B981" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                  </defs>
+                  <circle className="progress-bg" cx="60" cy="60" r="52" />
+                  <circle 
+                    className="progress-bar" 
+                    cx="60" 
+                    cy="60" 
+                    r="52"
+                    style={{
+                      strokeDasharray: `${budgetProgress} 326.7`,
+                      stroke: 'url(#budgetProgressGradient)'
+                    }}                 />
+                </svg>
+                <div className="progress-center-content">
+                  <span className="progress-percentage">
+                    {summary.budgetStatus ? Math.round((summary.budgetStatus.reduce((sum, b) => sum + b.spent, 0) / (summary.budgetStatus.reduce((sum, b) => sum + b.budgeted, 1)) * 100)) : 0}%
+                  </span>
+                  <span className="progress-label">Used</span>
+                </div>
+              </div>
+              <div className="progress-stats">
+                <div className="stat-item">
+                  <span className="stat-label">Total Budget</span>
+                  <span className="stat-value budget">
+                    {formatCurrency(summary.budgetStatus?.reduce((sum, b) => sum + b.budgeted, 0) || 0)}
+                  </span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Total Spent</span>
+                  <span className="stat-value spent">
+                    {formatCurrency(summary.budgetStatus?.reduce((sum, b) => sum + b.spent, 0) || 0)}
+                  </span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Remaining</span>
+                  <span className="stat-value remaining">
+                    {formatCurrency((summary.budgetStatus?.reduce((sum, b) => sum + b.budgeted, 0) || 0) - (summary.budgetStatus?.reduce((sum, b) => sum + b.spent, 0) || 0))}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Budget Categories Overview */}
+            <div className="budget-categories-card">
+              <h3><FiTarget size={18} /> Category Breakdown</h3>
+              <div className="budget-categories-list">
+                {summary.budgetStatus && summary.budgetStatus.length > 0 ? (
+                  summary.budgetStatus.slice(0, 4).map((budget, index) => {
+                    const percentage = (budget.spent / budget.budgeted) * 100;
+                    const isOverBudget = percentage > 100;
+                    const isWarning = percentage > 70 && percentage <= 100;
+                    
+                    return (
+                      <div key={index} className={`category-budget-item ${isOverBudget ? 'over' : isWarning ? 'warning' : 'good'}`}>
+                        <div className="category-info">
+                          <span className="category-name">{budget.category}</span>
+                          <span className={`category-status ${isOverBudget ? 'over' : isWarning ? 'warning' : 'good'}`}>
+                            {isOverBudget ? <FiAlertCircle /> : isWarning ? <FiZap /> : <FiCheckCircle />}
+                          </span>
+                        </div>
+                        <div className="category-progress-wrapper">
+                          <div className="category-progress-bar">
+                            <div 
+                              className={`category-progress-fill ${isOverBudget ? 'over' : isWarning ? 'warning' : 'good'}`}
+                              style={{ width: `${Math.min(percentage, 100)}%` }}
+                            />
+                          </div>
+                          <span className="category-percentage">{Math.round(percentage)}%</span>
+                        </div>
+                        <div className="category-amounts">
+                          <span className="spent-amount">{formatCurrency(budget.spent)}</span>
+                          <span className="budget-amount">of {formatCurrency(budget.budgeted)}</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="no-budgets-message">
+                    <FiTarget size={32} />
+                    <p>No budgets set up yet</p>
+                    <span>Create budgets to track your spending</span>
+                  </div>
+                )}
+              </div>
+              {summary.budgetStatus && summary.budgetStatus.length > 4 && (
+                <button className="view-all-btn">
+                  View All {summary.budgetStatus.length} Categories <FiArrowDown size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Quick Insights Card */}
+            <div className="budget-insights-card">
+              <h3><GiUpgrade size={18} /> Quick Insights</h3>
+              <div className="insights-list">
+                {summary.budgetStatus && summary.budgetStatus.length > 0 ? (
+                  <>
+                    <div className="insight-item success">
+                      <div className="insight-icon"><FiCheckCircle /></div>
+                      <div className="insight-content">
+                        <span className="insight-value">{budgetOverview.overBudget ? summary.budgetStatus.length - budgetOverview.overBudget.length : 0}</span>
+                        <span className="insight-label">Categories on track</span>
+                      </div>
+                    </div>
+                    {budgetOverview.overBudget.length > 0 && (
+                      <div className="insight-item danger">
+                        <div className="insight-icon"><FiAlertCircle /></div>
+                        <div className="insight-content">
+                          <span className="insight-value">{budgetOverview.overBudget.length}</span>
+                          <span className="insight-label">Over budget</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="insight-item info">
+                      <div className="insight-icon"><FiTrendingUp /></div>
+                      <div className="insight-content">
+                        <span className="insight-value">{formatCurrency(budgetOverview.totalBudget - budgetOverview.totalSpent)}</span>
+                        <span className="insight-label">Potential savings</span>
+                      </div>
+                    </div>
+                    {summary.totalExpense > 0 && (
+                      <div className="insight-item primary">
+                        <div className="insight-icon"><FiDollarSign /></div>
+                        <div className="insight-content">
+                          <span className="insight-value">{Math.round((budgetOverview.totalSpent / summary.totalExpense) * 100)}%</span>
+                          <span className="insight-label">Of total expenses</span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="no-insights">
+                    <p>Set up budgets to see insights</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -544,59 +751,25 @@ const Reports = () => {
           </div>
         </section>
 
-        <section className="insights-section">
-          <div className="insights-card">
-            <div className="insights-header">
-              <h3 className="section-title">
-                <FiInfo size={20} />
-                Smart Insights
-              </h3>
-            </div>
-            <div className="insights-grid">
-              {insights.map((insight, index) => (
-                <div key={index} className={`insight-item ${insight.type}`}>
-                  <div className="insight-icon">{insight.icon}</div>
-                  <div className="insight-content">
-                    <p className="insight-text">{insight.text}</p>
-                    <span className="insight-meta">{insight.meta}</span>
-                  </div>
-                </div>
-              ))}
-              {insights.length === 0 && (
-                <div className="insight-item info">
-                  <div className="insight-icon"><FiInfo /></div>
-                  <div className="insight-content">
-                    <p className="insight-text">Add transactions to get personalized insights</p>
-                    <span className="insight-meta">Get started</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
        
         <section className="actions-section">
-          <div className="actions-card">
-            <h3 className="section-title">Export & Actions</h3>
-            <div className="actions-buttons">
-              <button className="export-btn" onClick={() => handleExport('pdf')}>
-                <FiFileText size={18} />
-                <span>Export as PDF</span>
-              </button>
-              <button className="export-btn" onClick={() => handleExport('csv')}>
-                <FiDownload size={18} />
-                <span>Export as CSV</span>
-              </button>
-              <button className="export-btn" onClick={handlePrint}>
-                <FiPrinter size={18} />
-                <span>Print Report</span>
-              </button>
-              <button className="export-btn refresh" onClick={fetchData}>
-                <FiRefreshCw size={18} />
-                <span>Refresh Data</span>
-              </button>
-            </div>
+          <div className="actions-grid">
+            <button className="action-btn" onClick={() => handleExport('pdf')}>
+              <FiFileText size={18} />
+              <span>Export as PDF</span>
+            </button>
+            <button className="action-btn" onClick={() => handleExport('csv')}>
+              <FiDownload size={18} />
+              <span>Export as CSV</span>
+            </button>
+            <button className="action-btn" onClick={handlePrint}>
+              <FiPrinter size={18} />
+              <span>Print Report</span>
+            </button>
+            <button className="action-btn" onClick={fetchData}>
+              <FiRefreshCw size={18} />
+              <span>Refresh Data</span>
+            </button>
           </div>
         </section>
 

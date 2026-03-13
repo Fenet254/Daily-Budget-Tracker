@@ -5,12 +5,12 @@ import {
   FiUser, FiPhone, FiMapPin, FiGlobe, FiDollarSign, FiCalendar,
   FiCamera, FiEdit2, FiSave, FiX, FiCheck, FiAlertCircle,
   FiWifi, FiMessageCircle, FiMail, FiHeart, FiShield,
-  FiTrendingUp, FiTarget, FiAward, FiZap
+  FiTrendingUp, FiTarget, FiAward
 } from 'react-icons/fi';
 import { 
   FaWhatsapp, FaTelegram, FaFacebook, FaInstagram, FaCcVisa 
 } from 'react-icons/fa';
-import { GiPiggyBank, GiWallet } from 'react-icons/gi';
+import { GiPiggyBank, GiWallet, GiLightningBolt } from 'react-icons/gi';
 import './Profile.css';
 
 const API = axios.create({
@@ -34,6 +34,9 @@ const PERSONALITY_BADGES = {
   'Frugal Fighter': { color: '#EF4444', gradient: 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)' },
   'Budget Boss': { color: '#EC4899', gradient: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)' }
 };
+
+// Get available personality options (excluding None)
+const getPersonalityOptions = () => Object.keys(PERSONALITY_BADGES);
 
 // Currency symbols
 const CURRENCY_SYMBOLS = {
@@ -168,7 +171,7 @@ const Profile = () => {
       phone: user?.emergencyContact?.phone || '',
       relationship: user?.emergencyContact?.relationship || '',
     },
-    moneyPersonality: user?.moneyPersonality || 'None',
+    moneyPersonality: user?.moneyPersonality || 'Smart Saver',
     financialStats: {
       monthlyBudget: user?.financialStats?.monthlyBudget || 15000,
       savingsStreak: user?.financialStats?.savingsStreak || 7,
@@ -220,7 +223,7 @@ const Profile = () => {
           phone: userData.emergencyContact?.phone || '',
           relationship: userData.emergencyContact?.relationship || '',
         },
-        moneyPersonality: userData.moneyPersonality || 'None',
+        moneyPersonality: userData.moneyPersonality || 'Smart Saver',
         financialStats: {
           monthlyBudget: userData.financialStats?.monthlyBudget || 15000,
           savingsStreak: userData.financialStats?.savingsStreak || 7,
@@ -306,13 +309,34 @@ const Profile = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await API.put('/auth/profile', formData);
-      setUser(res.data);
+      // Send all form data to backend
+      const updateData = {
+        name: formData.name,
+        phone: formData.phone,
+        profilePhoto: formData.profilePhoto,
+        address: formData.address,
+        preferences: formData.preferences,
+        socialLinks: formData.socialLinks,
+        emergencyContact: formData.emergencyContact,
+        financialStats: formData.financialStats,
+        lifestylePreferences: formData.lifestylePreferences,
+        moneyPersonality: formData.moneyPersonality,
+        moneyStory: formData.moneyStory,
+      };
+      
+      const res = await API.put('/auth/profile', updateData);
+      
+      // Update the AuthContext with the new user data
+      if (res.data && setUser) {
+        setUser(res.data);
+      }
+      
       setIsEditing(false);
       showToast('Profile updated successfully!', 'success');
     } catch (error) {
       console.error('Error updating profile:', error);
-      showToast(error.response?.data?.msg || 'Failed to update profile', 'error');
+      const errorMessage = error.response?.data?.msg || error.response?.data?.message || 'Failed to update profile';
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -443,7 +467,7 @@ const Profile = () => {
             gradient="linear-gradient(135deg, #10B981 0%, #34D399 100%)"
           />
           <StatCard 
-            icon={<FiZap />}
+            icon={<GiLightningBolt />}
             label="Today's Spending"
             value={todaySpending}
             currency={formData.preferences.currency}
