@@ -7,10 +7,8 @@ import {
   FiWifi, FiMessageCircle, FiMail, FiHeart, FiShield,
   FiTrendingUp, FiTarget, FiAward
 } from 'react-icons/fi';
-import { 
-  FaWhatsapp, FaTelegram, FaFacebook, FaInstagram, FaCcVisa 
-} from 'react-icons/fa';
-import { GiPiggyBank, GiWallet, GiLightningBolt } from 'react-icons/gi';
+
+import { FiUser, FiPhone, FiMapPin, FiGlobe, FiDollarSign, FiCalendar,\n  FiCamera, FiEdit2, FiSave, FiX, FiCheck, FiAlertCircle,\n  FiWifi, FiMessageCircle, FiMail, FiHeart, FiShield,\n  FiTrendingUp, FiTarget, FiAward, FiZap } from 'react-icons/fi';\nimport { \n  FaWhatsapp, FaTelegram, FaFacebook, FaInstagram, FaCcVisa \n} from 'react-icons/fa';\nimport { GiPiggyBank, GiWallet } from 'react-icons/gi';
 import './Profile.css';
 
 const API = axios.create({
@@ -467,7 +465,7 @@ const Profile = () => {
             gradient="linear-gradient(135deg, #10B981 0%, #34D399 100%)"
           />
           <StatCard 
-            icon={<GiLightningBolt />}
+icon={<FiZap />}
             label="Today's Spending"
             value={todaySpending}
             currency={formData.preferences.currency}

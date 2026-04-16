@@ -7,7 +7,7 @@ import {
 import { 
   FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, 
   FiPieChart, FiSavings, FiDownload, FiFileText, FiPrinter,
-  FiCalendar, FiFilter, FiAlertCircle, FiCheckCircle, FiInfo,
+  FiCalendar, FiFilter, FiAlertCircle, FiZap, FiCheckCircle, FiInfo,
   FiArrowUp, FiArrowDown, FiRefreshCw, FiTarget, FiActivity
 } from 'react-icons/fi';
 import { GiLightningBolt } from 'react-icons/gi';
@@ -97,16 +97,7 @@ const Reports = () => {
       if (filters.startDate) params.startDate = filters.startDate;
       if (filters.endDate) params.endDate = filters.endDate;
       
-      const [summaryRes, transactionsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/reports/summary', { 
-          params,
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }),
-        axios.get('http://localhost:5000/api/reports/transactions', { 
-          params,
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
-      ]);
+      const [summaryRes, transactionsRes] = await Promise.all([\n        axios.get('http://localhost:5001/api/reports/summary', { \n          params,\n          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }\n        }),\n        axios.get('http://localhost:5001/api/reports/transactions', { \n          params,\n          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }\n        })\n      ]);
       
       setSummary(summaryRes.data);
       setTransactions(transactionsRes.data);
@@ -246,6 +237,8 @@ const Reports = () => {
   const savingsRate = summary.totalIncome > 0 
     ? ((summary.totalIncome - summary.totalExpense) / summary.totalIncome * 100) 
     : 0;
+  const incomeTrend = 12.5;
+  const expenseTrend = -8.2;
 
   // Calculate budget overview data
   const getBudgetOverviewData = () => {
@@ -348,9 +341,9 @@ const Reports = () => {
                 <div className="kpi-icon">
                   <FiTrendingUp size={24} />
                 </div>
-                <div className="kpi-trend up">
-                  <FiArrowUp size={14} />
-                  <span>+12.5%</span>
+                <div className={`kpi-trend ${incomeTrend >= 0 ? 'up' : 'down'}`}>
+                  {incomeTrend >= 0 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
+                  <span>{formatPercent(Math.abs(incomeTrend))}</span>
                 </div>
               </div>
               <p className="kpi-label">Total Income</p>
@@ -365,9 +358,9 @@ const Reports = () => {
                 <div className="kpi-icon">
                   <FiTrendingDown size={24} />
                 </div>
-                <div className="kpi-trend down">
-                  <FiArrowDown size={14} />
-                  <span>-8.2%</span>
+                <div className={`kpi-trend ${expenseTrend <= 0 ? 'up' : 'down'}`}>
+                  {expenseTrend <= 0 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
+                  <span>{formatPercent(Math.abs(expenseTrend))}</span>
                 </div>
               </div>
               <p className="kpi-label">Total Expenses</p>

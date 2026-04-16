@@ -14,8 +14,9 @@ import {
   FiAlertCircle, FiCheckCircle, FiX
 } from 'react-icons/fi';
 import { 
-  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet, GiLightningBolt 
+  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet 
 } from 'react-icons/gi';
+import { FiZap } from 'react-icons/fi';
 import './Dashboard.css';
 
 const getCategoryIcon = (category) => {
@@ -24,7 +25,7 @@ const getCategoryIcon = (category) => {
     food: <FiCoffee />,
     transport: <FiTruck />,
     rent: <FiHome />,
-    utilities: <GiLightningBolt />,
+  utilities: <FiZap />,
     entertainment: <FiMusic />,
     shopping: <FiShoppingCart />,
     salary: <FiDollarSign />,
@@ -217,14 +218,14 @@ const Dashboard = () => {
   const fetchSummary = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      const res = await axios.get(`http://localhost:5000/api/reports/summary?startDate=${startDate}&endDate=${endDate}`, {
+      const res = await axios.get(`http://localhost:5001/api/reports/summary?startDate=${startDate}&endDate=${endDate}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setSummary(res.data);
       
       // Fetch previous period data for comparison
       const { startDate: prevStartDate, endDate: prevEndDate } = getPrevDateRange();
-      const prevRes = await axios.get(`http://localhost:5000/api/reports/summary?startDate=${prevStartDate}&endDate=${prevEndDate}`, {
+      const prevRes = await axios.get(`http://localhost:5001/api/reports/summary?startDate=${prevStartDate}&endDate=${prevEndDate}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setPrevSummary(prevRes.data);
@@ -236,7 +237,7 @@ const Dashboard = () => {
   const fetchRecentTransactions = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      let url = `http://localhost:5000/api/transactions?limit=5&startDate=${startDate}&endDate=${endDate}`;
+      let url = `http://localhost:5001/api/transactions?limit=5&startDate=${startDate}&endDate=${endDate}`;
       if (selectedCategory !== 'all') {
         url += `&category=${selectedCategory}`;
       }
@@ -254,7 +255,7 @@ const Dashboard = () => {
   const fetchChartData = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      const res = await axios.get(`http://localhost:5000/api/reports/transactions?startDate=${startDate}&endDate=${endDate}`, {
+      const res = await axios.get(`http://localhost:5001/api/reports/transactions?startDate=${startDate}&endDate=${endDate}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       

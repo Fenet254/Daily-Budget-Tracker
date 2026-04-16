@@ -9,10 +9,10 @@ import {
   FiAlertCircle, FiCheckCircle, FiX, FiChevronDown, FiTrendingUp,
   FiCoffee, FiTruck, FiHome, FiMusic, FiShoppingCart, FiDollarSign,
   FiCreditCard, FiTarget, FiCalendar, FiFileText, FiGrid, FiList, FiSearch,
-  FiTrendingDown, FiTrendingUp as FiTrendingUpIcon,
-  FiAward, FiSmartphone, FiShare2
+  FiTrendingUp as FiTrendingUpIcon,
+  FiAward, FiSmartphone, FiShare2, FiZap
 } from 'react-icons/fi';
-import { GiPiggyBank, GiWallet, GiTakeMyMoney, GiMoneyStack, GiLightningBolt } from 'react-icons/gi';
+import { GiPiggyBank, GiWallet, GiTakeMyMoney, GiMoneyStack } from 'react-icons/gi';
 import './Budgets.css';
 
 // Confetti component for celebration
@@ -70,7 +70,7 @@ const getCategoryIcon = (category) => {
     food: <FiCoffee />,
     transport: <FiTruck />,
     rent: <FiHome />,
-    utilities: <GiLightningBolt />,
+    utilities: <FiZap />,
     entertainment: <FiMusic />,
     shopping: <FiShoppingCart />,
     salary: <FiDollarSign />,
@@ -85,7 +85,7 @@ const CATEGORY_OPTIONS = [
   { value: 'food', label: 'Food', icon: <FiCoffee />, color: '#10B981' },
   { value: 'transport', label: 'Transport', icon: <FiTruck />, color: '#F59E0B' },
   { value: 'rent', label: 'Rent', icon: <FiHome />, color: '#6366F1' },
-  { value: 'utilities', label: 'Utilities', icon: <GiLightningBolt />, color: '#8B5CF6' },
+  { value: 'utilities', label: 'Utilities', icon: <FiZap />, color: '#8B5CF6' },
   { value: 'entertainment', label: 'Entertainment', icon: <FiMusic />, color: '#EC4899' },
   { value: 'shopping', label: 'Shopping', icon: <FiShoppingCart />, color: '#14B8A6' },
   { value: 'health', label: 'Health', icon: <FiCreditCard />, color: '#EF4444' },
@@ -472,7 +472,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
       } else if (percentage >= 70) {
         warnings.push({
           type: 'warning',
-          icon: <GiLightningBolt />,
+          icon: <FiZap />,
           category: budget.category
         });
       }

@@ -30,7 +30,8 @@ router.get('/', protect, async (req, res) => {
       
       return {
         ...budget.toObject(),
-        spent
+        spent,
+        percentage: budget.amount > 0 ? Math.min((spent / budget.amount) * 100, 100) : 0
       };
     }));
     
