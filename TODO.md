@@ -1,24 +1,17 @@
-# Daily Budget Tracker - Fix Remaining Errors
+# Daily Budget Tracker Redesign TODO
 
-## Current Progress
-✅ Step 1: Reports.js fixes complete (import safe, trends dynamic placeholder)
-✅ Step 2: budgets.js enhanced with safe percentage calculation
+## Current Task: Redesign Dashboard & Reports (Swap Designs)
 
-## Next Steps (Phase 1 Complete)
-### Step 3: Start Backend Server
-- [ ] cd backend && npm start
+### Steps (0/6 completed):
 
-### Step 4: Test Full App
-- [ ] Verify Reports page loads without errors
-- [ ] Check browser console
-- [ ] Test API calls
+- [ ] 1. Create TODO.md ✅ **(DONE)**
+- [ ] 2. Update Reports.js with current Dashboard.js content
+- [ ] 3. Update Reports.css with current Dashboard.css content  
+- [ ] 4. Redesign Dashboard.js with new impressive layout (left blank, right content)
+- [ ] 5. Update Dashboard.css with new styles
+- [ ] 6. Add /reports route to App.js
+- [ ] 7. Test navigation and responsive design
+- [ ] 8. attempt_completion
 
-✅ Step 3: Backend server started successfully on port 5001 with MongoDB connected
+**Progress: 1/8 steps completed**
 
-## Final Testing Steps
-✅ Step 4: Test Full App
-- [x] Backend running
-- [ ] Frontend running and API calls working
-- [ ] No console errors on Reports/Dashboard
-
-**All critical fixes complete! App should now run without errors.**

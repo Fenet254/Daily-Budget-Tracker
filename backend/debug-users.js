@@ -1,6 +1,5 @@
-// Debug script to check users in database
-const mongoose = require('mongoose');
 
+const mongoose = require('mongoose');
 const mongoURI = 'mongodb://127.0.0.1:27017/daily-budget-tracker';
 
 mongoose.connect(mongoURI, {
@@ -10,10 +9,10 @@ mongoose.connect(mongoURI, {
 .then(async () => {
   console.log('Connected to MongoDB');
   
-  // Get User model
+
   const User = require('./models/User');
   
-  // List all users
+ 
   const users = await User.find({});
   console.log(`\nTotal users in database: ${users.length}`);
   

@@ -1,23 +1,25 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, TrendingUpDown, Flame, Zap, Award, Sparkles } from 'lucide-react';
+import API from '../api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, Legend 
+  PieChart, Pie, Cell, Legend, AreaChart, Area 
 } from 'recharts';
 import { 
   FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, 
   FiPieChart, FiSavings, FiPlus, FiFileText, FiTarget, FiDownload,
   FiEdit2, FiTrash2, FiArrowRight, FiFilter,
-  FiShoppingCart, FiCoffee, FiHome, FiMusic, FiTruck,
+  FiShoppingCart, FiCoffee, FiHome, FiMusic, FiTruck, FiZap,
   FiAlertCircle, FiCheckCircle, FiX
 } from 'react-icons/fi';
 import { 
-  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet 
+  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet, GiTakeMyMoney 
 } from 'react-icons/gi';
-import { FiZap } from 'react-icons/fi';
 import './Dashboard.css';
+
 
 const getCategoryIcon = (category) => {
   const categoryLower = category?.toLowerCase() || '';
@@ -69,13 +71,30 @@ const getTimeBasedGreeting = () => {
   }
 };
 
-// Animated counter component
+// Premium Sparkline Component for KPIs
+const Sparkline = ({ data, color, type = 'income' }) => (
+  <div className="sparkline-container">
+    <ResponsiveContainer width="100%" height={30}>
+      <AreaChart data={data.slice(-7)} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id={`spark-${type}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.4}/>
+            <stop offset="100%" stopColor={color} stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <Area dataKey={type === 'income' ? 'income' : 'expenses'} stroke={color} strokeWidth={2} fill={`url(#spark-${type})`} dot={false}/>
+      </AreaChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+// Animated counter component (Enhanced)
 const AnimatedCounter = ({ value, prefix = '' }) => {
   const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
-    const duration = 1000;
-    const steps = 30;
+    const duration = 1200;
+    const steps = 40;
     const increment = value / steps;
     let current = 0;
     
@@ -92,13 +111,18 @@ const AnimatedCounter = ({ value, prefix = '' }) => {
     return () => clearInterval(timer);
   }, [value]);
   
-  return <span>{prefix}{formatCurrency(displayValue)}</span>;
+  return <motion.span 
+    initial={{ scale: 0.9, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+  >{prefix}{formatCurrency(displayValue)}</motion.span>;
 };
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const [dateRange, setDateRange] = useState('today');
+  const [dateRange, setDateRange] = useState('week');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
   const [prevSummary, setPrevSummary] = useState(null);
@@ -108,6 +132,9 @@ const Dashboard = () => {
   const [toast, setToast] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [greeting, setGreeting] = useState(getTimeBasedGreeting());
+
+  // insights removed
+
 
   // Update greeting every minute to reflect time changes
   useEffect(() => {
@@ -215,19 +242,52 @@ const Dashboard = () => {
     return `${prefix}${value.toFixed(1)}%`;
   };
 
+  // 🔥 NEW BUDGET UTILITIES
+  const getBudgetStats = () => {
+    const budgetStatus = summary?.budgetStatus || [];
+    const totalBudgeted = budgetStatus.reduce((sum, b) => sum + b.budgeted, 0);
+    const totalSpent = budgetStatus.reduce((sum, b) => sum + b.spent, 0);
+    const avgUsage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
+    const onTrackCount = budgetStatus.filter(b => (b.spent / b.budgeted) * 100 < 80).length;
+    const overBudgetCount = budgetStatus.filter(b => b.spent > b.budgeted).length;
+    
+    return {
+      totalBudgeted,
+      totalSpent,
+      avgUsage,
+      onTrackCount,
+      totalBudgets: budgetStatus.length,
+      overBudgetCount,
+      budgetStatus
+    };
+  };
+
+  const getBudgetHealthScore = () => {
+    const stats = getBudgetStats();
+    const avgUsage = stats.avgUsage;
+    if (avgUsage <= 70) return 100;
+    if (avgUsage <= 90) return 85;
+    if (avgUsage <= 110) return 60;
+    return 30;
+  };
+
+  const getTopBudgetAlerts = () => {
+    return (summary?.budgetStatus || [])
+      .filter(b => b.spent > b.budgeted * 0.8)
+      .sort((a, b) => (b.spent / b.budgeted) - (a.spent / a.budgeted))
+      .slice(0, 3);
+  };
+
+
   const fetchSummary = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      const res = await axios.get(`http://localhost:5001/api/reports/summary?startDate=${startDate}&endDate=${endDate}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      const res = await API.get(`/reports/summary?startDate=${startDate}&endDate=${endDate}`);
       setSummary(res.data);
       
       // Fetch previous period data for comparison
       const { startDate: prevStartDate, endDate: prevEndDate } = getPrevDateRange();
-      const prevRes = await axios.get(`http://localhost:5001/api/reports/summary?startDate=${prevStartDate}&endDate=${prevEndDate}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      const prevRes = await API.get(`/reports/summary?startDate=${prevStartDate}&endDate=${prevEndDate}`);
       setPrevSummary(prevRes.data);
     } catch (error) {
       console.error('Error fetching summary:', error);
@@ -237,14 +297,12 @@ const Dashboard = () => {
   const fetchRecentTransactions = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      let url = `http://localhost:5001/api/transactions?limit=5&startDate=${startDate}&endDate=${endDate}`;
+      let url = `/transactions?limit=5&startDate=${startDate}&endDate=${endDate}`;
       if (selectedCategory !== 'all') {
         url += `&category=${selectedCategory}`;
       }
       
-      const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      const res = await API.get(url);
       setTransactions(res.data);
       setLoading(false);
     } catch (error) {
@@ -255,9 +313,7 @@ const Dashboard = () => {
   const fetchChartData = async () => {
     try {
       const { startDate, endDate } = getDateRange();
-      const res = await axios.get(`http://localhost:5001/api/reports/transactions?startDate=${startDate}&endDate=${endDate}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      const res = await API.get(`/reports/transactions?startDate=${startDate}&endDate=${endDate}`);
       
       const transactions = res.data;
       const groupedData = {};
@@ -307,9 +363,7 @@ const Dashboard = () => {
   };
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/transactions/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      await API.delete(`/transactions/${id}`);
       showToast('Transaction deleted successfully', 'success');
       fetchRecentTransactions();
       fetchSummary();
@@ -354,107 +408,207 @@ const Dashboard = () => {
     <div className="dashboard">
       <div className="dashboard-container">
       
-        <header className="dashboard-header">
-          <div className="dashboard-greeting">
-<h1>{user?.name ? `${greeting}, ${user.name}` : `${greeting}!`}</h1>
-            <p>Here's your financial overview today</p>
+        {/* Premium Hero Section */}
+        <motion.header 
+          className="dashboard-hero" 
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <div className="hero-content">
+            <div className="hero-left">
+              <motion.h1 
+                className="hero-title"
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+              >
+                {greeting}, {user?.name || 'Hero'}
+              </motion.h1>
+              <motion.p 
+                className="hero-insight"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Stay on track with your finances
+              </motion.p>
+            </div>
+
           </div>
           
-          <div className="dashboard-controls">
-            <div className="date-selector">
-              <button 
+          <motion.div 
+            className="hero-controls"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="date-selector glass">
+              <motion.button 
                 className={`date-btn ${dateRange === 'today' ? 'active' : ''}`}
                 onClick={() => setDateRange('today')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Today
-              </button>
-              <button 
+              </motion.button>
+              <motion.button 
                 className={`date-btn ${dateRange === 'week' ? 'active' : ''}`}
                 onClick={() => setDateRange('week')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                This Week
-              </button>
-              <button 
+                Week
+              </motion.button>
+              <motion.button 
                 className={`date-btn ${dateRange === 'month' ? 'active' : ''}`}
                 onClick={() => setDateRange('month')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                This Month
-              </button>
+                Month
+              </motion.button>
             </div>
-          </div>
-        </header>
+          </motion.div>
+        </motion.header>
 
-        <section className="kpi-section">
-          <div className="kpi-grid">
-        
-            <div className="kpi-card income">
+
+        {/* Premium Asymmetric KPI Section */}
+        <motion.section 
+          className="kpi-section" 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ staggerChildren: 0.1, delay: 0.6 }}
+        >
+          <div className="kpi-grid-asymmetric">
+            {/* Income - Offset left */}
+            <motion.div 
+              className="kpi-card glass income glass-elevated" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -8, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
               <div className="kpi-header">
-                <div className="kpi-icon">
-                  <FiTrendingUp size={24} />
+                <div className="kpi-icon neumorphic">
+                  <Zap size={24} />
                 </div>
-                <div className={`kpi-trend ${calculatePercentageChange(summary?.totalIncome || 0, prevSummary?.totalIncome || 0) >= 0 ? 'up' : 'down'}`}>
-                  {calculatePercentageChange(summary?.totalIncome || 0, prevSummary?.totalIncome || 0) >= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
+                <motion.div className={`kpi-trend up glass`}>
+                  <TrendingUpDown size={16} />
                   <span>{formatPercentage(calculatePercentageChange(summary?.totalIncome || 0, prevSummary?.totalIncome || 0))}</span>
-                </div>
+                </motion.div>
               </div>
-              <p className="kpi-label">Total Income</p>
+              <Sparkline data={chartData} color="#10B981" type="income" />
+              <p className="kpi-label glass-text">Total Income</p>
               <h3 className="kpi-amount">
                 <AnimatedCounter value={summary?.totalIncome || 0} />
               </h3>
-            </div>
+            </motion.div>
 
-            {/* Total Expenses Card */}
-            <div className="kpi-card expense">
+            {/* Expenses - Full width */}
+            <motion.div 
+              className="kpi-card glass expense glass-wide" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -8, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300, delay: 0.1 }}
+            >
               <div className="kpi-header">
-                <div className="kpi-icon">
-                  <FiTrendingDown size={24} />
+                <div className="kpi-icon neumorphic">
+                  <TrendingUpDown size={24} />
                 </div>
-                <div className={`kpi-trend ${calculatePercentageChange(summary?.totalExpense || 0, prevSummary?.totalExpense || 0) <= 0 ? 'up' : 'down'}`}>
-                  {calculatePercentageChange(summary?.totalExpense || 0, prevSummary?.totalExpense || 0) <= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
+                <motion.div className={`kpi-trend down glass`}>
+                  <TrendingUpDown size={16} />
                   <span>{formatPercentage(calculatePercentageChange(summary?.totalExpense || 0, prevSummary?.totalExpense || 0))}</span>
-                </div>
+                </motion.div>
               </div>
-              <p className="kpi-label">Total Expenses</p>
+              <Sparkline data={chartData} color="#EF4444" type="expenses" />
+              <p className="kpi-label glass-text">Total Expenses</p>
               <h3 className="kpi-amount">
                 <AnimatedCounter value={summary?.totalExpense || 0} />
               </h3>
-            </div>
+            </motion.div>
 
-            {/* Balance Card */}
-            <div className="kpi-card balance">
-              <div className="kpi-header">
-                <div className="kpi-icon">
-                  <GiWallet size={24} />
-                </div>
-                <div className={`kpi-trend ${calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)) >= 0 ? 'up' : 'down'}`}>
-                  {calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)) >= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
-                  <span>{formatPercentage(calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)))}</span>
-                </div>
+            {/* Balance - Overlap effect */}
+            <motion.div 
+              className="kpi-card glass balance overlap-left" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -8, rotateX: 2, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300, delay: 0.2 }}
+            >
+              <div className="kpi-icon neumorphic balance-icon">
+                <Award size={24} />
               </div>
-              <p className="kpi-label">Current Balance</p>
-              <h3 className="kpi-amount">
-                <AnimatedCounter value={summary?.balance || 0} />
-              </h3>
-            </div>
-
-            {/* Savings Card */}
-            <div className="kpi-card savings">
-              <div className="kpi-header">
-                <div className="kpi-icon">
-                  <GiPiggyBank size={24} />
+              <div className="kpi-content">
+                <div className="kpi-header">
+                  <motion.div className="kpi-trend up glass">
+                    <TrendingUpDown size={16} />
+                    <span>{formatPercentage(calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)))}</span>
+                  </motion.div>
                 </div>
-                <div className={`kpi-trend ${calculatePercentageChange(Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2, Math.max(0, ((prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0))) * 0.2) >= 0 ? 'up' : 'down'}`}>
-                  {calculatePercentageChange(Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2, Math.max(0, ((prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0))) * 0.2) >= 0 ? <FiTrendingUp size={14} /> : <FiTrendingDown size={14} />}
+                <Sparkline data={chartData} color="#3B82F6" type="income" />
+                <p className="kpi-label glass-text">Current Balance</p>
+                <h3 className="kpi-amount">
+                  <AnimatedCounter value={summary?.balance || 0} />
+                </h3>
+              </div>
+            </motion.div>
+
+            {/* Savings - Floating right */}
+            <motion.div 
+              className="kpi-card glass savings float-right" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -12, rotateY: -2, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300, delay: 0.3 }}
+            >
+              <div className="kpi-header">
+                <div className="kpi-icon neumorphic">
+                  <Sparkles size={24} />
+                </div>
+                <motion.div className="kpi-trend up glass savings-trend">
+                  <Flame size={16} />
                   <span>{formatPercentage(calculatePercentageChange(Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2, Math.max(0, ((prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0))) * 0.2))}</span>
-                </div>
+                </motion.div>
               </div>
-              <p className="kpi-label">Savings</p>
+              <Sparkline data={chartData} color="#8B5CF6" type="income" />
+              <p className="kpi-label glass-text">Projected Savings</p>
               <h3 className="kpi-amount">
                 <AnimatedCounter value={Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2} />
               </h3>
-            </div>
+            </motion.div>
+          </div>
+        </motion.section>
+
+
+        {/* Smart Insights Panel removed per request */}
+
+        {/* Budget Progress Bars */}
+        <section className="budget-progress-section">
+          <h3 className="section-title">Budget Health</h3>
+          <div className="progress-container">
+            {getTopBudgetAlerts().map((budget, index) => (
+              <motion.div 
+                key={index}
+                className="progress-item"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: (budget.spent / budget.budgeted) }}
+                transition={{ duration: 1.5, delay: 1.5 + index * 0.1 }}
+              >
+                <div className="progress-label">
+                  <span>{budget.category}</span>
+                  <span>{formatCurrency(budget.spent)} / {formatCurrency(budget.budgeted)}</span>
+                </div>
+                <div className="progress-bar">
+                  <div 
+                    className={`progress-fill ${budget.spent > budget.budgeted ? 'danger' : budget.spent > budget.budgeted * 0.8 ? 'warning' : 'success'}`}
+                  ></div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </section>
+
 
         {/* Charts Section */}
         <section className="charts-section">
@@ -680,7 +834,7 @@ const Dashboard = () => {
           ) : (
             <div className="empty-state">
 <div className="empty-state-icon">C</div>
-              <h3>No transactions yet</h3>
+              <h3>No recent transactions</h3>
               <p>Start tracking your finances by adding your first transaction</p>
             </div>
           )}

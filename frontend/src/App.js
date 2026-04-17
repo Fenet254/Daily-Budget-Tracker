@@ -7,9 +7,9 @@ import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import Transactions from './components/Transactions';
 import Budgets from './components/Budgets';
-import Reports from './components/Reports';
+
 import SMSImport from './components/SMSImport';
-import Profile from './components/Profile';
+
 import Settings from './components/Settings';
 import Contact from './components/Contact';
 import Help from './components/Help';
@@ -41,9 +41,9 @@ function AppContent() {
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
           <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
-          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+
           <Route path="/sms-import" element={<ProtectedRoute><SMSImport /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
           <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
@@ -58,7 +58,7 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppContent />
       </Router>
     </AuthProvider>

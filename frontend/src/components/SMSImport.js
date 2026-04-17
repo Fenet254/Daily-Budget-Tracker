@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import API from '../api';
 import './SMSImport.css';
 
 const SMSImport = () => {
@@ -13,7 +13,7 @@ const SMSImport = () => {
     setImportedTransaction(null);
 
     try {
-      const res = await axios.post('http://localhost:5000/sms/import', { smsText });
+      const res = await API.post('/sms/import', { smsText });
       setMessage('Transaction imported successfully!');
       setImportedTransaction(res.data.transaction);
       setSmsText('');

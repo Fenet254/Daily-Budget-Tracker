@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
-import axios from 'axios';
+import API from '../api';
 import { 
   FiGrid, 
   FiList, 
@@ -18,17 +18,7 @@ import {
 } from 'react-icons/fi';
 import './Navbar.css';
 
-const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
-});
 
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);

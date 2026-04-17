@@ -1,92 +1,136 @@
 /* ============================================
-   Daily Budget Tracker - Global Styles
-   Premium Fintech Theme
+   Daily Budget Tracker - Premium Fintech v2.0
+   Glassmorphism • Neumorphism • Asymmetric
+   Stripe/Apple/Notion Inspired
    ============================================ */
 
-/* Import Inter Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Google Fonts: Inter (Premium Typography) + SF Pro fallback */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   CSS Variables - Light Theme (Default)
+   CSS Custom Properties - Light Theme (Default)
    ============================================ */
 :root {
-  /* Primary Colors */
-  --color-primary: #3B82F6;
-  --color-primary-dark: #2563EB;
-  --color-primary-light: #60A5FA;
+  /* Core Brand */
+  --color-primary: #6366F1;
+  --color-primary-dark: #4F46E5;
+  --color-primary-light: #A5B4FC;
   
-  /* Semantic Colors */
+  /* Semantic Spectrum */
   --color-income: #10B981;
-  --color-income-light: #D1FAE5;
+  --color-income-glow: rgba(16, 185, 129, 0.3);
   --color-expense: #EF4444;
-  --color-expense-light: #FEE2E2;
+  --color-expense-glow: rgba(239, 68, 68, 0.3);
   --color-balance: #3B82F6;
-  --color-balance-light: #DBEAFE;
+  --color-balance-glow: rgba(59, 130, 246, 0.3);
   --color-savings: #8B5CF6;
-  --color-savings-light: #EDE9FE;
+  --color-savings-glow: rgba(139, 92, 246, 0.3);
   
-  /* Background & Surface */
-  --bg-primary: #F5F7FA;
-  --bg-secondary: #FFFFFF;
-  --bg-tertiary: #F1F5F9;
-  --bg-card: #FFFFFF;
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-backdrop: blur(24px);
+  --glass-shadow-inset: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.18);
   
-  /* Text Colors */
-  --text-primary: #1E293B;
-  --text-secondary: #64748B;
-  --text-tertiary: #94A3B8;
-  --text-inverse: #FFFFFF;
+  /* Neumorphism Subtle Emboss */
+  --neumo-light: rgba(255, 255, 255, 0.7);
+  --neumo-dark: rgba(0, 0, 0, 0.12);
+  --neumo-shadow: 9px 9px 16px var(--neumo-dark), -9px -9px 16px var(--neumo-light);
   
-  /* Border & Dividers */
-  --border-color: #E2E8F0;
-  --divider-color: #F1F5F9;
+  /* Background Layers */
+  --bg-primary: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
+  --bg-secondary: rgba(255, 255, 255, 0.8);
+  --bg-card: var(--glass-bg);
+  --bg-glass-dark: rgba(26, 32, 44, 0.8);
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
-  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
+  /* Text Hierarchy */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --text-glass: rgba(15, 23, 42, 0.75);
   
-  /* Gradients */
-  --gradient-header: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-  --gradient-income: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  --gradient-expense: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-  --gradient-balance: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  --gradient-savings: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  /* Borders & Dividers */
+  --border-glass: 1px solid var(--glass-border);
+  --border-subtle: 1px solid rgba(148, 163, 184, 0.2);
+  --divider-color: rgba(71, 85, 105, 0.15);
   
-  /* Border Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-full: 9999px;
+  /* Layered Shadows (Premium Depth) */
+  --shadow-ambient: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-glass: 0 25px 45px -20px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  --shadow-neon-hover: 0 0 0 1px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-card-hover: var(--shadow-elevated), var(--shadow-glass);
   
-  /* Spacing */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
+  /* Asymmetric Organic Shapes */
+  --radius-soft: 20px;
+  --radius-card: 24px;
+  --radius-promo: 32px;
+  --radius-fab: 50%;
+  --radius-asym: 24px 12px 32px 16px;
+  
+  /* Fintech Gradients */
+  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  --gradient-income: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+  --gradient-expense: linear-gradient(135deg, #ed213a 0%, #93291e 100%);
+  --gradient-balance: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-savings: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  --gradient-glass: linear-gradient(145deg, var(--neumo-light), var(--neumo-dark));
+  
+  /* Rhythm & Motion */
+  --space-3xs: 2px;
+  --space-2xs: 6px;
+  --space-xs: 10px;
+  --space-sm: 14px;
+  --space-md: 20px;
+  --space-lg: 28px;
+  --space-xl: 36px;
   --space-2xl: 48px;
+  --space-3xl: 64px;
   
-  /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-size-xs: 12px;
-  --font-size-sm: 14px;
-  --font-size-base: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 24px;
-  --font-size-3xl: 30px;
-  --font-size-4xl: 36px;
+  /* Typography Scale (Inter Optimized) */
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  --font-size-caption: clamp(12px, 2.5vw, 14px);
+  --font-size-body: clamp(14px, 3vw, 16px);
+  --font-size-lead: clamp(16px, 3.5vw, 18px);
+  --font-size-h5: clamp(20px, 4vw, 24px);
+  --font-size-h4: clamp(28px, 5vw, 32px);
+  --font-size-h3: clamp(36px, 6vw, 40px);
+  --font-size-h2: clamp(44px, 7vw, 48px);
+  --font-size-h1: clamp(52px, 8vw, 60px);
   
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 350ms ease;
-  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Cinematic Transitions */
+  --motion-premium: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease: 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --motion-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-glass: 600ms cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* ============================================
+   Dark Mode - Neon Glass Paradise
+   ============================================ */
+[data-theme="dark"] {
+  --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  --bg-secondary: rgba(30, 41, 59, 0.6);
+  --bg-card: rgba(15, 23, 42, 0.75);
+  --bg-glass-dark: rgba(15, 23, 42, 0.9);
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-tertiary: #94A3B8;
+  --text-glass: rgba(248, 250, 252, 0.9);
+  
+  --border-glass: 1px solid rgba(148, 163, 184, 0.2);
+  --border-subtle: 1px solid rgba(71, 85, 105, 0.4);
+  
+  --glass-bg: rgba(30, 41, 59, 0.4);
+  --glass-border: rgba(99, 102, 241, 0.3);
+  
+  --shadow-glass: 0 25px 45px -20px rgba(0, 0, 0, 0.5);
+  --shadow-neon-hover: 0 0 0 1px rgba(99, 102, 241, 0.8), 0 0 30px rgba(99, 102, 241, 0.6);
+  
+  --neumo-light: rgba(99, 102, 241, 0.2);
+  --neumo-dark: rgba(0, 0, 0, 0.4);
 }
 
 /* ============================================

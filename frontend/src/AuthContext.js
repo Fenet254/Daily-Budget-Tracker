@@ -4,7 +4,7 @@ import axios from "axios";
 export const AuthContext = createContext();
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://localhost:5001/api",
 });
 
 // Set up axios interceptor to add token to requests

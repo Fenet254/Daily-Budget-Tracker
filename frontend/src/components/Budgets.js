@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import API from '../api';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -241,10 +242,8 @@ const Budgets = () => {
   const [sortBy, setSortBy] = useState('category');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
-  // Get auth token
-  const getAuthHeader = () => ({
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-  });
+
+
 
   // Load data on mount
   useEffect(() => {
@@ -265,7 +264,7 @@ const Budgets = () => {
   const fetchBudgets = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/api/budgets', getAuthHeader());
+      const res = await API.get('/budgets');
       setBudgets(res.data);
       setLoading(false);
     } catch (error) {
@@ -307,10 +306,10 @@ const Budgets = () => {
       };
       
       if (editingId) {
-        const res = await axios.put(`http://localhost:5000/api/budgets/${editingId}`, budgetData, getAuthHeader());
+        const res = await API.put(`/budgets/${editingId}`, budgetData);
         showToast('Budget updated successfully', 'success');
       } else {
-        const res = await axios.post('http://localhost:5000/api/budgets', budgetData, getAuthHeader());
+        const res = await API.post('/budgets', budgetData);
         showToast('Budget created successfully', 'success');
         // Trigger confetti for new budget
         setShowConfetti(true);
@@ -358,7 +357,7 @@ const Budgets = () => {
   // Handle delete budget
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/budgets/${id}`, getAuthHeader());
+      await API.delete(`/budgets/${id}`);
       showToast('Budget deleted successfully', 'success');
       fetchBudgets();
     } catch (error) {

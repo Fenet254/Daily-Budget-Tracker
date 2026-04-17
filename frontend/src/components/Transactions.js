@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api';
 import './Transactions.css';
 
 // Category icons mapping
@@ -44,11 +44,7 @@ const Transactions = () => {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  // Get auth token from localStorage
-  const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+
 
   // Show toast notification
   const showToast = (message, type = 'success') => {
@@ -64,9 +60,7 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/transactions', {
-        headers: getAuthHeader()
-      });
+      const res = await API.get('/transactions');
       setTransactions(res.data);
       setLoading(false);
     } catch (error) {
@@ -122,15 +116,11 @@ const Transactions = () => {
     
     try {
       if (editing) {
-        await axios.put(`http://localhost:5000/api/transactions/${editing}`, transactionData, {
-          headers: getAuthHeader()
-        });
+        await API.put(`/transactions/${editing}`, transactionData);
         showToast('Transaction updated! Budgets have been recalculated.', 'success');
         setEditing(null);
       } else {
-        const response = await axios.post('http://localhost:5000/api/transactions', transactionData, {
-          headers: getAuthHeader()
-        });
+        const response = await API.post('/transactions', transactionData);
         console.log('Transaction saved:', response.data);
         showToast('Transaction added! Your budgets have been updated.', 'success');
       }
@@ -168,9 +158,7 @@ const Transactions = () => {
     if (!window.confirm('Are you sure you want to delete this transaction?')) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/transactions/${id}`, {
-        headers: getAuthHeader()
-      });
+      await API.delete(`/transactions/${id}`);
       showToast('Transaction deleted! Budgets have been recalculated.', 'success');
       fetchTransactions();
       // Store flag to refresh budgets when navigating to Budgets page

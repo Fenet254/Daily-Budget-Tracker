@@ -1,22 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, TrendingUpDown, Flame, Zap, Award, Sparkles } from 'lucide-react';
+import API from '../api';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, ComposedChart, Area, AreaChart
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, Legend, AreaChart, Area 
 } from 'recharts';
 import { 
   FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, 
-  FiPieChart, FiSavings, FiDownload, FiFileText, FiPrinter,
-  FiCalendar, FiFilter, FiAlertCircle, FiZap, FiCheckCircle, FiInfo,
-  FiArrowUp, FiArrowDown, FiRefreshCw, FiTarget, FiActivity
+  FiPieChart, FiSavings, FiPlus, FiFileText, FiTarget, FiDownload,
+  FiEdit2, FiTrash2, FiArrowRight, FiFilter,
+  FiShoppingCart, FiCoffee, FiHome, FiMusic, FiTruck, FiZap,
+  FiAlertCircle, FiCheckCircle, FiX
 } from 'react-icons/fi';
-import { GiLightningBolt } from 'react-icons/gi';
 import { 
-  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet, GiTakeMyMoney,
-  GiCircularArrows, GiUpgrade
+  GiMoneyStack, GiExpense, GiPiggyBank, GiWallet, GiTakeMyMoney 
 } from 'react-icons/gi';
 import './Reports.css';
 
+const getCategoryIcon = (category) => {
+  const categoryLower = category?.toLowerCase() || '';
+  const icons = {
+    food: <FiCoffee />,
+    transport: <FiTruck />,
+    rent: <FiHome />,
+    utilities: <FiZap />,
+    entertainment: <FiMusic />,
+    shopping: <FiShoppingCart />,
+    salary: <FiDollarSign />,
+    investment: <GiPiggyBank />,
+  };
+  return icons[categoryLower] || <FiCreditCard />;
+};
+
+// Category colors for charts
 const CATEGORY_COLORS = {
   Food: '#10B981',
   Transport: '#F59E0B',
@@ -24,12 +43,10 @@ const CATEGORY_COLORS = {
   Utilities: '#8B5CF6',
   Entertainment: '#EC4899',
   Shopping: '#14B8A6',
-  Other: '#64748B',
-  Salary: '#22C55E',
-  Investment: '#0EA5E9',
-  OtherIncome: '#10B981'
+  Other: '#64748B'
 };
 
+// Format currency
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -39,15 +56,44 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
-const formatPercent = (value) => {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+// Get time-based greeting
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return 'Good morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good afternoon';
+  } else if (hour >= 17 && hour < 22) {
+    return 'Good evening';
+  } else {
+    return 'Good night';
+  }
 };
+
+// Premium Sparkline Component for KPIs
+const Sparkline = ({ data, color, type = 'income' }) => (
+  <div className="sparkline-container">
+    <ResponsiveContainer width="100%" height={30}>
+      <AreaChart data={data.slice(-7)} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id={`spark-${type}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.4}/>
+            <stop offset="100%" stopColor={color} stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <Area dataKey={type === 'income' ? 'income' : 'expenses'} stroke={color} strokeWidth={2} fill={`url(#spark-${type})`} dot={false}/>
+      </AreaChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+// Animated counter component (Enhanced)
 const AnimatedCounter = ({ value, prefix = '' }) => {
   const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
-    const duration = 1000;
-    const steps = 30;
+    const duration = 1200;
+    const steps = 40;
     const increment = value / steps;
     let current = 0;
     
@@ -64,129 +110,273 @@ const AnimatedCounter = ({ value, prefix = '' }) => {
     return () => clearInterval(timer);
   }, [value]);
   
-  return <span>{prefix}{formatCurrency(displayValue)}</span>;
+  return <motion.span 
+    initial={{ scale: 0.9, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+  >{prefix}{formatCurrency(displayValue)}</motion.span>;
 };
 
-const SkeletonCard = () => (
-  <div className="skeleton-card">
-    <div className="skeleton skeleton-icon"></div>
-    <div className="skeleton skeleton-text"></div>
-    <div className="skeleton skeleton-text-lg"></div>
-  </div>
-);
-
 const Reports = () => {
-  const [summary, setSummary] = useState({});
-  const [transactions, setTransactions] = useState([]);
-  const [filters, setFilters] = useState({ 
-    startDate: new Date(new Date().setDate(1)).toISOString().split('T')[0], 
-    endDate: new Date().toISOString().split('T')[0] 
-  });
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [dateRange, setDateRange] = useState('week');
   const [loading, setLoading] = useState(true);
-  const [insights, setInsights] = useState([]);
-  const [chartTimeRange, setChartTimeRange] = useState('month');
+  const [summary, setSummary] = useState(null);
+  const [prevSummary, setPrevSummary] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [toast, setToast] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [greeting, setGreeting] = useState(getTimeBasedGreeting());
+
+  // Update greeting every minute to reflect time changes
+  useEffect(() => {
+    const updateGreeting = () => {
+      setGreeting(getTimeBasedGreeting());
+    };
+    
+    // Update immediately and then every minute
+    updateGreeting();
+    const interval = setInterval(updateGreeting, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [filters]);
+    fetchSummary();
+    fetchRecentTransactions();
+    fetchChartData();
+    
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, [dateRange, selectedCategory]);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const getDateRange = () => {
+    const now = new Date();
+    let startDate, endDate;
+    
+    switch (dateRange) {
+      case 'today':
+        startDate = new Date(now.setHours(0, 0, 0, 0));
+        endDate = new Date(now.setHours(23, 59, 59, 999));
+        break;
+      case 'week':
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 7);
+        endDate = new Date();
+        break;
+      case 'month':
+        startDate = new Date(now);
+        startDate.setMonth(now.getMonth() - 1);
+        endDate = new Date();
+        break;
+      default:
+        startDate = new Date(now.setHours(0, 0, 0, 0));
+        endDate = new Date(now.setHours(23, 59, 59, 999));
+    }
+    
+    return { startDate: startDate.toISOString(), endDate: endDate.toISOString() };
+  };
+
+  // Get previous period date range for percentage calculation
+  const getPrevDateRange = () => {
+    const now = new Date();
+    let startDate, endDate;
+    
+    switch (dateRange) {
+      case 'today':
+        // Previous day
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() - 1);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case 'week':
+        // Previous week (7-14 days ago)
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 14);
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() - 8);
+        break;
+      case 'month':
+        // Previous month
+        startDate = new Date(now);
+        startDate.setMonth(now.getMonth() - 2);
+        endDate = new Date(now);
+        endDate.setMonth(now.getMonth() - 1);
+        endDate.setDate(0); // Last day of previous month
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      default:
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() - 1);
+        endDate.setHours(23, 59, 59, 999);
+    }
+    
+    return { startDate: startDate.toISOString(), endDate: endDate.toISOString() };
+  };
+
+  // Calculate percentage change between current and previous period
+  const calculatePercentageChange = (current, previous) => {
+    if (!previous || previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    return ((current - previous) / previous) * 100;
+  };
+
+  // Format percentage for display
+  const formatPercentage = (value) => {
+    const prefix = value >= 0 ? '+' : '';
+    return `${prefix}${value.toFixed(1)}%`;
+  };
+
+  // 🔥 NEW BUDGET UTILITIES
+  const getBudgetStats = () => {
+    const budgetStatus = summary?.budgetStatus || [];
+    const totalBudgeted = budgetStatus.reduce((sum, b) => sum + b.budgeted, 0);
+    const totalSpent = budgetStatus.reduce((sum, b) => sum + b.spent, 0);
+    const avgUsage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
+    const onTrackCount = budgetStatus.filter(b => (b.spent / b.budgeted) * 100 < 80).length;
+    const overBudgetCount = budgetStatus.filter(b => b.spent > b.budgeted).length;
+    
+    return {
+      totalBudgeted,
+      totalSpent,
+      avgUsage,
+      onTrackCount,
+      totalBudgets: budgetStatus.length,
+      overBudgetCount,
+      budgetStatus
+    };
+  };
+
+  const getBudgetHealthScore = () => {
+    const stats = getBudgetStats();
+    const avgUsage = stats.avgUsage;
+    if (avgUsage <= 70) return 100;
+    if (avgUsage <= 90) return 85;
+    if (avgUsage <= 110) return 60;
+    return 30;
+  };
+
+  const getTopBudgetAlerts = () => {
+    return (summary?.budgetStatus || [])
+      .filter(b => b.spent > b.budgeted * 0.8)
+      .sort((a, b) => (b.spent / b.budgeted) - (a.spent / a.budgeted))
+      .slice(0, 3);
+  };
+
+  const fetchSummary = async () => {
     try {
-      const params = {};
-      if (filters.startDate) params.startDate = filters.startDate;
-      if (filters.endDate) params.endDate = filters.endDate;
+      const { startDate, endDate } = getDateRange();
+      const res = await API.get(`/reports/summary?startDate=${startDate}&endDate=${endDate}`);
+      setSummary(res.data);
       
-      const [summaryRes, transactionsRes] = await Promise.all([\n        axios.get('http://localhost:5001/api/reports/summary', { \n          params,\n          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }\n        }),\n        axios.get('http://localhost:5001/api/reports/transactions', { \n          params,\n          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }\n        })\n      ]);
-      
-      setSummary(summaryRes.data);
-      setTransactions(transactionsRes.data);
-      generateInsights(summaryRes.data);
+      // Fetch previous period data for comparison
+      const { startDate: prevStartDate, endDate: prevEndDate } = getPrevDateRange();
+      const prevRes = await API.get(`/reports/summary?startDate=${prevStartDate}&endDate=${prevEndDate}`);
+      setPrevSummary(prevRes.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
+      console.error('Error fetching summary:', error);
+      // Fallback empty data
+      setSummary({});
+      setPrevSummary({});
+    }
+  };
+
+  const fetchRecentTransactions = async () => {
+    try {
+      const { startDate, endDate } = getDateRange();
+      let url = `/transactions?limit=5&startDate=${startDate}&endDate=${endDate}`;
+      if (selectedCategory !== 'all') {
+        url += `&category=${selectedCategory}`;
+      }
+      
+      const res = await API.get(url);
+      setTransactions(res.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
       setLoading(false);
     }
   };
 
-  const generateInsights = (data) => {
-    const newInsights = [];
-    const savingsRate = data.totalIncome > 0 
-      ? ((data.totalIncome - data.totalExpense) / data.totalIncome * 100) 
-      : 0;
-    
-    if (savingsRate >= 20) {
-      newInsights.push({
-        icon: <FiCheckCircle />,
-        text: `Great job! Your savings rate is ${savingsRate.toFixed(1)}%`,
-        type: 'success',
-        meta: 'Excellent savings'
-      });
-    } else if (savingsRate > 0) {
-      newInsights.push({
-        icon: <FiInfo />,
-        text: `Your savings rate is ${savingsRate.toFixed(1)}%. Aim for 20% to build wealth.`,
-        type: 'info',
-        meta: 'Savings opportunity'
-      });
-    } else {
-      newInsights.push({
-        icon: <FiAlertCircle />,
-        text: "You're spending more than you earn. Consider reducing expenses.",
-        type: 'warning',
-        meta: 'Action needed'
-      });
-    }
-    if (data.categoryBreakdown) {
-      const categories = Object.entries(data.categoryBreakdown);
-      const expenseCategories = categories.filter(([_, d]) => d.expense > 0);
+  const fetchChartData = async () => {
+    try {
+      const { startDate, endDate } = getDateRange();
+      const res = await API.get(`/reports/transactions?startDate=${startDate}&endDate=${endDate}`);
       
-      if (expenseCategories.length > 0) {
-        const topExpense = expenseCategories.reduce((a, b) => 
-          (a[1]?.expense || 0) > (b[1]?.expense || 0) ? a : b
-        );
-        
-        newInsights.push({
-          icon: <FiTrendingUp />,
-          text: `Highest expense: ${topExpense[0]} - ${formatCurrency(topExpense[1]?.expense || 0)}`,
-          type: 'info',
-          meta: 'Top spending'
+      const transactions = res.data;
+      const groupedData = {};
+      const days = dateRange === 'today' ? 1 : dateRange === 'week' ? 7 : 30;
+
+      for (let i = days; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        groupedData[dateKey] = { date: dateKey, income: 0, expenses: 0 };
+      }
+    
+      transactions.forEach(t => {
+        const dateKey = new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (groupedData[dateKey]) {
+          if (t.type === 'income') {
+            groupedData[dateKey].income += t.amount;
+          } else {
+            groupedData[dateKey].expenses += t.amount;
+          }
+        }
+      });
+      
+      const data = Object.values(groupedData);
+      setChartData(data);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+     
+      const data = [];
+      const days = dateRange === 'today' ? 1 : dateRange === 'week' ? 7 : 30;
+      for (let i = days; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        data.push({
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          income: 0,
+          expenses: 0,
         });
       }
+      setChartData(data);
     }
+  };
 
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-    if (data.budgetStatus) {
-      const overBudget = data.budgetStatus.filter(b => b.spent > b.budgeted);
-      if (overBudget.length > 0) {
-        newInsights.push({
-          icon: <FiAlertCircle />,
-          text: `${overBudget.length} category(s) over budget`,
-          type: 'warning',
-          meta: 'Budget alert'
-        });
-      } else if (data.budgetStatus.length > 0) {
-        newInsights.push({
-          icon: <FiCheckCircle />,
-          text: "You're within budget across all categories!",
-          type: 'success',
-          meta: 'On track'
-        });
-      }
+  const handleDelete = async (id) => {
+    try {
+      await API.delete(`/transactions/${id}`);
+      showToast('Transaction deleted successfully', 'success');
+      fetchRecentTransactions();
+      fetchSummary();
+      fetchChartData();
+    } catch (error) {
+      showToast('Failed to delete transaction', 'error');
     }
-
-    setInsights(newInsights);
   };
 
-  const handleFilterChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+  const handleExport = (format) => {
+    showToast(`Exporting data as ${format.toUpperCase()}...`, 'success');
   };
 
-  const applyFilters = () => {
-    fetchData();
-  };
-  const getCategoryPieData = () => {
-    if (!summary.categoryBreakdown) return [];
+  const getExpenseBreakdown = () => {
+    if (!summary?.categoryBreakdown) return [];
     
     return Object.entries(summary.categoryBreakdown)
       .filter(([_, data]) => data.expense > 0)
@@ -197,96 +387,15 @@ const Reports = () => {
       }));
   };
 
-  const getBudgetBarData = () => {
-    if (!summary.budgetStatus) return [];
-    
-    return summary.budgetStatus.map(budget => ({
-      category: budget.category,
-      budgeted: budget.budgeted,
-      spent: budget.spent,
-      remaining: budget.remaining,
-      isOverBudget: budget.spent > budget.budgeted
-    }));
-  };
-  const getLineChartData = () => {
-
-    const groupedData = {};
-    
-    transactions.forEach(tx => {
-      const date = new Date(tx.date).toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-      
-      if (!groupedData[date]) {
-        groupedData[date] = { date, income: 0, expenses: 0 };
-      }
-      
-      if (tx.type === 'income') {
-        groupedData[date].income += tx.amount;
-      } else {
-        groupedData[date].expenses += tx.amount;
-      }
-    });
-
-    return Object.values(groupedData).sort((a, b) => 
-      new Date(a.date) - new Date(b.date)
-    );
-  };
-
-  const savingsRate = summary.totalIncome > 0 
-    ? ((summary.totalIncome - summary.totalExpense) / summary.totalIncome * 100) 
-    : 0;
-  const incomeTrend = 12.5;
-  const expenseTrend = -8.2;
-
-  // Calculate budget overview data
-  const getBudgetOverviewData = () => {
-    if (!summary.budgetStatus || summary.budgetStatus.length === 0) {
-      return { status: 'none', overBudget: [], totalBudget: 0, totalSpent: 0, percentage: 0 };
-    }
-    const overBudget = summary.budgetStatus.filter(b => b.spent > b.budgeted);
-    const totalBudget = summary.budgetStatus.reduce((sum, b) => sum + b.budgeted, 0);
-    const totalSpent = summary.budgetStatus.reduce((sum, b) => sum + b.spent, 0);
-    const percentage = (totalSpent / totalBudget) * 100;
-    
-    let status = 'neutral';
-    if (overBudget.length === 0 && percentage <= 70) status = 'excellent';
-    else if (overBudget.length === 0 && percentage <= 90) status = 'good';
-    else if (overBudget.length > 0) status = 'warning';
-    
-    return { status, overBudget, totalBudget, totalSpent, percentage };
-  };
-  
-  const budgetOverview = getBudgetOverviewData();
-
-  // Calculate budget progress for the circular progress bar
-  const budgetProgress = (() => {
-    if (!summary.budgetStatus || summary.budgetStatus.length === 0) return 0;
-    const totalSpent = summary.budgetStatus.reduce((sum, b) => sum + b.spent, 0);
-    const totalBudgeted = summary.budgetStatus.reduce((sum, b) => sum + b.budgeted, 0);
-    if (totalBudgeted === 0) return 0;
-    return Math.min((totalSpent / totalBudgeted) * 326.7, 326.7);
-  })();
-
-  const handleExport = (format) => {
-    alert(`Exporting as ${format.toUpperCase()}...`);
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
   if (loading) {
     return (
-      <div className="reports">
-        <div className="reports-container">
-          <div className="reports-header-skeleton">
-            <div className="skeleton skeleton-title"></div>
-            <div className="skeleton skeleton-subtitle"></div>
-          </div>
+      <div className="dashboard">
+        <div className="dashboard-container">
+          <div className="skeleton skeleton-card" style={{ marginBottom: '24px', height: '80px' }}></div>
           <div className="kpi-grid">
-            {[1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="skeleton skeleton-card"></div>
+            ))}
           </div>
         </div>
       </div>
@@ -294,325 +403,220 @@ const Reports = () => {
   }
 
   return (
-    <div className="reports">
-      <div className="reports-container">
-        <header className="reports-header">
-          <div className="reports-title-section">
-            <h1>Reports</h1>
-            <p>Track your income, expenses, and financial trends.</p>
+    <div className="dashboard">
+      <div className="dashboard-container">
+      
+        {/* Premium Hero Section */}
+        <motion.header 
+          className="dashboard-hero" 
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <div className="hero-content">
+            <div className="hero-left">
+              <motion.h1 
+                className="hero-title"
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+              >
+                {greeting}, {user?.name || 'User'}
+              </motion.h1>
+              <motion.p 
+                className="hero-insight"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Stay on track with your finances
+              </motion.p>
+            </div>
+
           </div>
           
-          <div className="reports-controls">
-            <div className="date-range-picker">
-              <div className="date-input-group">
-                <FiCalendar className="date-icon" />
-                <input
-                  type="date"
-                  name="startDate"
-                  value={filters.startDate}
-                  onChange={handleFilterChange}
-                  className="date-input"
-                />
-              </div>
-              <span className="date-separator">to</span>
-              <div className="date-input-group">
-                <FiCalendar className="date-icon" />
-                <input
-                  type="date"
-                  name="endDate"
-                  value={filters.endDate}
-                  onChange={handleFilterChange}
-                  className="date-input"
-                />
-              </div>
-              <button className="filter-btn" onClick={applyFilters}>
-                <FiFilter size={16} />
-                Apply Filter
-              </button>
+          <motion.div 
+            className="hero-controls"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="date-selector glass">
+              <motion.button 
+                className={`date-btn ${dateRange === 'today' ? 'active' : ''}`}
+                onClick={() => setDateRange('today')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Today
+              </motion.button>
+              <motion.button 
+                className={`date-btn ${dateRange === 'week' ? 'active' : ''}`}
+                onClick={() => setDateRange('week')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Week
+              </motion.button>
+              <motion.button 
+                className={`date-btn ${dateRange === 'month' ? 'active' : ''}`}
+                onClick={() => setDateRange('month')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Month
+              </motion.button>
             </div>
+          </motion.div>
+        </motion.header>
+
+        {/* Premium Asymmetric KPI Section */}
+        <motion.section 
+          className="kpi-section" 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ staggerChildren: 0.1, delay: 0.6 }}
+        >
+          <div className="kpi-grid-asymmetric">
+            {/* Income - Offset left */}
+            <motion.div 
+              className="kpi-card glass income glass-elevated" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -8, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <div className="kpi-header">
+                <div className="kpi-icon neumorphic">
+                  <Zap size={24} />
+                </div>
+                <motion.div className={`kpi-trend up glass`}>
+                  <TrendingUpDown size={16} />
+                  <span>{formatPercentage(calculatePercentageChange(summary?.totalIncome || 0, prevSummary?.totalIncome || 0))}</span>
+                </motion.div>
+              </div>
+              <Sparkline data={chartData} color="#10B981" type="income" />
+              <p className="kpi-label glass-text">Total Income</p>
+              <h3 className="kpi-amount">
+                <AnimatedCounter value={summary?.totalIncome || 0} />
+              </h3>
+            </motion.div>
+
+            {/* Expenses - Full width */}
+            <motion.div 
+              className="kpi-card glass expense glass-wide" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -8, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300, delay: 0.1 }}
+            >
+              <div className="kpi-header">
+                <div className="kpi-icon neumorphic">
+                  <TrendingUpDown size={24} />
+                </div>
+                <motion.div className={`kpi-trend down glass`}>
+                  <TrendingUpDown size={16} />
+                  <span>{formatPercentage(calculatePercentageChange(summary?.totalExpense || 0, prevSummary?.totalExpense || 0))}</span>
+                </motion.div>
+              </div>
+              <Sparkline data={chartData} color="#EF4444" type="expenses" />
+              <p className="kpi-label glass-text">Total Expenses</p>
+              <h3 className="kpi-amount">
+                <AnimatedCounter value={summary?.totalExpense || 0} />
+              </h3>
+            </motion.div>
+
+            {/* Balance - Overlap effect */}
+            <motion.div 
+              className="kpi-card glass balance overlap-left" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -8, rotateX: 2, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300, delay: 0.2 }}
+            >
+              <div className="kpi-icon neumorphic balance-icon">
+                <Award size={24} />
+              </div>
+              <div className="kpi-content">
+                <div className="kpi-header">
+                  <motion.div className="kpi-trend up glass">
+                    <TrendingUpDown size={16} />
+                    <span>{formatPercentage(calculatePercentageChange(summary?.balance || 0, (prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0)))}</span>
+                  </motion.div>
+                </div>
+                <Sparkline data={chartData} color="#3B82F6" type="income" />
+                <p className="kpi-label glass-text">Current Balance</p>
+                <h3 className="kpi-amount">
+                  <AnimatedCounter value={summary?.balance || 0} />
+                </h3>
+              </div>
+            </motion.div>
+
+            {/* Savings - Floating right */}
+            <motion.div 
+              className="kpi-card glass savings float-right" 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ y: -12, rotateY: -2, boxShadow: 'var(--shadow-neon-hover)' }}
+              transition={{ type: 'spring', stiffness: 300, delay: 0.3 }}
+            >
+              <div className="kpi-header">
+                <div className="kpi-icon neumorphic">
+                  <Sparkles size={24} />
+                </div>
+                <motion.div className="kpi-trend up glass savings-trend">
+                  <Flame size={16} />
+                  <span>{formatPercentage(calculatePercentageChange(Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2, Math.max(0, ((prevSummary?.totalIncome || 0) - (prevSummary?.totalExpense || 0))) * 0.2))}</span>
+                </motion.div>
+              </div>
+              <Sparkline data={chartData} color="#8B5CF6" type="income" />
+              <p className="kpi-label glass-text">Projected Savings</p>
+              <h3 className="kpi-amount">
+                <AnimatedCounter value={Math.max(0, (summary?.totalIncome || 0) - (summary?.totalExpense || 0)) * 0.2} />
+              </h3>
+            </motion.div>
           </div>
-        </header>
+        </motion.section>
 
-        <section className="kpi-section">
-          <div className="kpi-grid">
-        
-            <div className="kpi-card income">
-              <div className="kpi-header">
-                <div className="kpi-icon">
-                  <FiTrendingUp size={24} />
+        {/* Budget Progress Bars */}
+        <section className="budget-progress-section">
+          <h3 className="section-title">Budget Health</h3>
+          <div className="progress-container">
+            {getTopBudgetAlerts().map((budget, index) => (
+              <motion.div 
+                key={index}
+                className="progress-item"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: (budget.spent / budget.budgeted) }}
+                transition={{ duration: 1.5, delay: 1.5 + index * 0.1 }}
+              >
+                <div className="progress-label">
+                  <span>{budget.category}</span>
+                  <span>{formatCurrency(budget.spent)} / {formatCurrency(budget.budgeted)}</span>
                 </div>
-                <div className={`kpi-trend ${incomeTrend >= 0 ? 'up' : 'down'}`}>
-                  {incomeTrend >= 0 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
-                  <span>{formatPercent(Math.abs(incomeTrend))}</span>
+                <div className="progress-bar">
+                  <div 
+                    className={`progress-fill ${budget.spent > budget.budgeted ? 'danger' : budget.spent > budget.budgeted * 0.8 ? 'warning' : 'success'}`}
+                  ></div>
                 </div>
-              </div>
-              <p className="kpi-label">Total Income</p>
-              <h3 className="kpi-amount">
-                <AnimatedCounter value={summary.totalIncome || 0} />
-              </h3>
-            </div>
-
-        
-            <div className="kpi-card expense">
-              <div className="kpi-header">
-                <div className="kpi-icon">
-                  <FiTrendingDown size={24} />
-                </div>
-                <div className={`kpi-trend ${expenseTrend <= 0 ? 'up' : 'down'}`}>
-                  {expenseTrend <= 0 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
-                  <span>{formatPercent(Math.abs(expenseTrend))}</span>
-                </div>
-              </div>
-              <p className="kpi-label">Total Expenses</p>
-              <h3 className="kpi-amount">
-                <AnimatedCounter value={summary.totalExpense || 0} />
-              </h3>
-            </div>
-
-            <div className="kpi-card balance">
-              <div className="kpi-header">
-                <div className="kpi-icon">
-                  <GiWallet size={24} />
-                </div>
-                <div className={`kpi-trend ${summary.balance >= 0 ? 'up' : 'down'}`}>
-                  {summary.balance >= 0 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
-                  <span>{summary.balance >= 0 ? '+' : ''}{((summary.balance / (summary.totalIncome || 1)) * 100).toFixed(1)}%</span>
-                </div>
-              </div>
-              <p className="kpi-label">Balance</p>
-              <h3 className="kpi-amount">
-                <AnimatedCounter value={summary.balance || 0} />
-              </h3>
-            </div>
-
-            <div className="kpi-card savings">
-              <div className="kpi-header">
-                <div className="kpi-icon">
-                  <GiPiggyBank size={24} />
-                </div>
-                <div className={`kpi-trend ${savingsRate >= 20 ? 'up' : savingsRate > 0 ? 'neutral' : 'down'}`}>
-                  {savingsRate >= 20 ? <FiArrowUp size={14} /> : savingsRate > 0 ? <FiTrendingUp size={14} /> : <FiArrowDown size={14} />}
-                  <span>{formatPercent(savingsRate)}</span>
-                </div>
-              </div>
-              <p className="kpi-label">Savings Rate</p>
-              <h3 className="kpi-amount">
-                {savingsRate.toFixed(1)}%
-              </h3>
-            </div>
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* Beautiful Budget Executive Summary Section */}
-        <section className="budget-overview-section">
-          <div className="budget-overview-header">
-            <div className="budget-overview-title">
-              <GiCircularArrows size={28} className="overview-icon" />
-              <div>
-                <h2>Budget Executive Summary</h2>
-                <p>Your complete budget overview at a glance</p>
-              </div>
-            </div>
-            <div className="budget-health-badge">
-              {summary.budgetStatus && summary.budgetStatus.length > 0 ? (
-                budgetOverview.status === 'excellent' ? (
-                  <span className="health-badge excellent"><FiCheckCircle /> Excellent</span>
-                ) : budgetOverview.status === 'good' ? (
-                  <span className="health-badge good"><FiInfo /> On Track</span>
-                ) : budgetOverview.status === 'warning' ? (
-                  <span className="health-badge warning"><FiAlertCircle /> Needs Attention</span>
-                ) : (
-                  <span className="health-badge neutral"><FiActivity /> Normal</span>
-                )
-              ) : (
-                <span className="health-badge neutral"><FiTarget /> No Budgets</span>
-              )}
-            </div>
-          </div>
-          
-          <div className="budget-overview-grid">
-            {/* Main Circular Progress Card */}
-            <div className="budget-progress-card">
-              <div className="circular-progress-container">
-                <svg className="circular-progress" viewBox="0 0 120 120">
-                  <defs>
-                    <linearGradient id="budgetProgressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#10B981" />
-                      <stop offset="100%" stopColor="#3B82F6" />
-                    </linearGradient>
-                  </defs>
-                  <circle className="progress-bg" cx="60" cy="60" r="52" />
-                  <circle 
-                    className="progress-bar" 
-                    cx="60" 
-                    cy="60" 
-                    r="52"
-                    style={{
-                      strokeDasharray: `${budgetProgress} 326.7`,
-                      stroke: 'url(#budgetProgressGradient)'
-                    }}                 />
-                </svg>
-                <div className="progress-center-content">
-                  <span className="progress-percentage">
-                    {summary.budgetStatus ? Math.round((summary.budgetStatus.reduce((sum, b) => sum + b.spent, 0) / (summary.budgetStatus.reduce((sum, b) => sum + b.budgeted, 1)) * 100)) : 0}%
-                  </span>
-                  <span className="progress-label">Used</span>
-                </div>
-              </div>
-              <div className="progress-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Total Budget</span>
-                  <span className="stat-value budget">
-                    {formatCurrency(summary.budgetStatus?.reduce((sum, b) => sum + b.budgeted, 0) || 0)}
-                  </span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Total Spent</span>
-                  <span className="stat-value spent">
-                    {formatCurrency(summary.budgetStatus?.reduce((sum, b) => sum + b.spent, 0) || 0)}
-                  </span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Remaining</span>
-                  <span className="stat-value remaining">
-                    {formatCurrency((summary.budgetStatus?.reduce((sum, b) => sum + b.budgeted, 0) || 0) - (summary.budgetStatus?.reduce((sum, b) => sum + b.spent, 0) || 0))}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Budget Categories Overview */}
-            <div className="budget-categories-card">
-              <h3><FiTarget size={18} /> Category Breakdown</h3>
-              <div className="budget-categories-list">
-                {summary.budgetStatus && summary.budgetStatus.length > 0 ? (
-                  summary.budgetStatus.slice(0, 4).map((budget, index) => {
-                    const percentage = (budget.spent / budget.budgeted) * 100;
-                    const isOverBudget = percentage > 100;
-                    const isWarning = percentage > 70 && percentage <= 100;
-                    
-                    return (
-                      <div key={index} className={`category-budget-item ${isOverBudget ? 'over' : isWarning ? 'warning' : 'good'}`}>
-                        <div className="category-info">
-                          <span className="category-name">{budget.category}</span>
-                          <span className={`category-status ${isOverBudget ? 'over' : isWarning ? 'warning' : 'good'}`}>
-                            {isOverBudget ? <FiAlertCircle /> : isWarning ? <FiZap /> : <FiCheckCircle />}
-                          </span>
-                        </div>
-                        <div className="category-progress-wrapper">
-                          <div className="category-progress-bar">
-                            <div 
-                              className={`category-progress-fill ${isOverBudget ? 'over' : isWarning ? 'warning' : 'good'}`}
-                              style={{ width: `${Math.min(percentage, 100)}%` }}
-                            />
-                          </div>
-                          <span className="category-percentage">{Math.round(percentage)}%</span>
-                        </div>
-                        <div className="category-amounts">
-                          <span className="spent-amount">{formatCurrency(budget.spent)}</span>
-                          <span className="budget-amount">of {formatCurrency(budget.budgeted)}</span>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="no-budgets-message">
-                    <FiTarget size={32} />
-                    <p>No budgets set up yet</p>
-                    <span>Create budgets to track your spending</span>
-                  </div>
-                )}
-              </div>
-              {summary.budgetStatus && summary.budgetStatus.length > 4 && (
-                <button className="view-all-btn">
-                  View All {summary.budgetStatus.length} Categories <FiArrowDown size={14} />
-                </button>
-              )}
-            </div>
-
-            {/* Quick Insights Card */}
-            <div className="budget-insights-card">
-              <h3><GiUpgrade size={18} /> Quick Insights</h3>
-              <div className="insights-list">
-                {summary.budgetStatus && summary.budgetStatus.length > 0 ? (
-                  <>
-                    <div className="insight-item success">
-                      <div className="insight-icon"><FiCheckCircle /></div>
-                      <div className="insight-content">
-                        <span className="insight-value">{budgetOverview.overBudget ? summary.budgetStatus.length - budgetOverview.overBudget.length : 0}</span>
-                        <span className="insight-label">Categories on track</span>
-                      </div>
-                    </div>
-                    {budgetOverview.overBudget.length > 0 && (
-                      <div className="insight-item danger">
-                        <div className="insight-icon"><FiAlertCircle /></div>
-                        <div className="insight-content">
-                          <span className="insight-value">{budgetOverview.overBudget.length}</span>
-                          <span className="insight-label">Over budget</span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="insight-item info">
-                      <div className="insight-icon"><FiTrendingUp /></div>
-                      <div className="insight-content">
-                        <span className="insight-value">{formatCurrency(budgetOverview.totalBudget - budgetOverview.totalSpent)}</span>
-                        <span className="insight-label">Potential savings</span>
-                      </div>
-                    </div>
-                    {summary.totalExpense > 0 && (
-                      <div className="insight-item primary">
-                        <div className="insight-icon"><FiDollarSign /></div>
-                        <div className="insight-content">
-                          <span className="insight-value">{Math.round((budgetOverview.totalSpent / summary.totalExpense) * 100)}%</span>
-                          <span className="insight-label">Of total expenses</span>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="no-insights">
-                    <p>Set up budgets to see insights</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        
+        {/* Charts Section */}
         <section className="charts-section">
-        
+          {/* Line Chart - Income vs Expenses */}
           <div className="chart-card">
             <div className="chart-header">
-              <h3 className="chart-title">Income vs Expenses (Monthly Trend)</h3>
+              <h3 className="chart-title">Income vs Expenses</h3>
               <div className="chart-actions">
-                <button 
-                  className={`chart-filter-btn ${chartTimeRange === 'week' ? 'active' : ''}`}
-                  onClick={() => setChartTimeRange('week')}
-                >
-                  Weekly
-                </button>
-                <button 
-                  className={`chart-filter-btn ${chartTimeRange === 'month' ? 'active' : ''}`}
-                  onClick={() => setChartTimeRange('month')}
-                >
-                  Monthly
-                </button>
+                <button className="chart-filter-btn active">Weekly</button>
+                <button className="chart-filter-btn">Monthly</button>
               </div>
             </div>
             <div className="chart-container">
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={getLineChartData()} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                   <XAxis 
                     dataKey="date" 
@@ -631,52 +635,52 @@ const Reports = () => {
                       backgroundColor: 'var(--bg-card)',
                       border: '1px solid var(--border-color)',
                       borderRadius: '8px',
-                      boxShadow: 'var(--shadow-lg)'
+                      boxShadow: 'var(--shadow-md)'
                     }}
                     formatter={(value) => formatCurrency(value)}
                   />
                   <Legend />
-                  <Area 
+                  <Line 
                     type="monotone" 
                     dataKey="income" 
                     name="Income"
                     stroke="#10B981" 
                     strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#incomeGradient)"
+                    dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
                   />
-                  <Area 
+                  <Line 
                     type="monotone" 
                     dataKey="expenses" 
                     name="Expenses"
                     stroke="#EF4444" 
                     strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#expenseGradient)"
+                    dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
                   />
-                </AreaChart>
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-      
+          {/* Doughnut Chart - Expense Breakdown */}
           <div className="chart-card">
             <div className="chart-header">
-              <h3 className="chart-title">Expense Distribution by Category</h3>
+              <h3 className="chart-title">Expense Breakdown</h3>
             </div>
-            <div className="chart-container donut-container">
-              <ResponsiveContainer width="100%" height={250}>
+            <div className="chart-container" style={{ height: '200px' }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={getCategoryPieData()}
+                    data={getExpenseBreakdown()}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
-                    outerRadius={100}
+                    outerRadius={80}
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {getCategoryPieData().map((entry, index) => (
+                    {getExpenseBreakdown().map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -692,7 +696,7 @@ const Reports = () => {
               </ResponsiveContainer>
             </div>
             <div className="doughnut-legend">
-              {getCategoryPieData().slice(0, 5).map((item, index) => (
+              {getExpenseBreakdown().slice(0, 4).map((item, index) => (
                 <div key={index} className="legend-item">
                   <span className="legend-label">
                     <span className="legend-dot" style={{ backgroundColor: item.color }}></span>
@@ -705,125 +709,143 @@ const Reports = () => {
           </div>
         </section>
 
-    
-        <section className="budget-section">
-          <div className="chart-card full-width">
-            <div className="chart-header">
-              <h3 className="chart-title">Budget vs Actual Spending</h3>
-            </div>
-            <div className="chart-container">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={getBudgetBarData()} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                  <XAxis 
-                    dataKey="category" 
-                    stroke="var(--text-tertiary)"
-                    fontSize={12}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    stroke="var(--text-tertiary)"
-                    fontSize={12}
-                    tickLine={false}
-                    tickFormatter={(value) => `${value / 1000}k`}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'var(--bg-card)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '8px'
-                    }}
-                    formatter={(value) => formatCurrency(value)}
-                  />
-                  <Legend />
-                  <Bar dataKey="budgeted" name="Budgeted" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="spent" name="Spent" fill="#10B981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+        {/* Quick Actions Section */}
+        <section className="quick-actions-section">
+          <button className="quick-action-btn" onClick={() => navigate('/transactions')}>
+            <span className="quick-action-icon"><FiPlus /></span>
+            <span className="quick-action-label">Add Transaction</span>
+          </button>
+          <button className="quick-action-btn" onClick={() => navigate('/reports')}>
+            <span className="quick-action-icon"><FiFileText /></span>
+            <span className="quick-action-label">View Reports</span>
+          </button>
+          <button className="quick-action-btn" onClick={() => navigate('/budgets')}>
+            <span className="quick-action-icon"><FiTarget /></span>
+            <span className="quick-action-label">Set Budget</span>
+          </button>
+          <button className="quick-action-btn" onClick={() => handleExport('pdf')}>
+            <span className="quick-action-icon"><FiDownload /></span>
+            <span className="quick-action-label">Export Report</span>
+          </button>
         </section>
 
-       
-        <section className="actions-section">
-          <div className="actions-grid">
-            <button className="action-btn" onClick={() => handleExport('pdf')}>
-              <FiFileText size={18} />
-              <span>Export as PDF</span>
-            </button>
-            <button className="action-btn" onClick={() => handleExport('csv')}>
-              <FiDownload size={18} />
-              <span>Export as CSV</span>
-            </button>
-            <button className="action-btn" onClick={handlePrint}>
-              <FiPrinter size={18} />
-              <span>Print Report</span>
-            </button>
-            <button className="action-btn" onClick={fetchData}>
-              <FiRefreshCw size={18} />
-              <span>Refresh Data</span>
-            </button>
-          </div>
-        </section>
-
-
+        {/* Recent Transactions Section */}
         <section className="transactions-section">
-          <div className="transactions-card">
-            <div className="transactions-header">
-              <h3 className="section-title">Transaction Details</h3>
-              <span className="transaction-count">{transactions.length} transactions</span>
-            </div>
-            {transactions.length > 0 ? (
-              <div className="table-container">
-                <table className="transactions-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Type</th>
-                      <th>Amount</th>
-                      <th>Category</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.slice(0, 10).map((transaction) => (
-                      <tr key={transaction._id}>
-                        <td>
-                          {new Date(transaction.date).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </td>
-                        <td>
-                          <span className={`type-badge ${transaction.type}`}>
-                            {transaction.type}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`transaction-amount ${transaction.type}`}>
-                            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                          </span>
-                        </td>
-                        <td>{transaction.category}</td>
-                        <td>{transaction.description || '-'}</td>
-                      </tr>
+          <div className="transactions-header">
+            <h3 className="section-title">Recent Transactions</h3>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              {/* Category Filter */}
+              <div className="filter-dropdown">
+                <button 
+                  className="filter-btn"
+                  onClick={() => setShowFilter(!showFilter)}
+                >
+                  <FiFilter size={16} />
+                  {selectedCategory === 'all' ? 'All Categories' : selectedCategory}
+                </button>
+                {showFilter && (
+                  <div className="filter-menu">
+                    <button 
+                      className={`filter-option ${selectedCategory === 'all' ? 'active' : ''}`}
+                      onClick={() => { setSelectedCategory('all'); setShowFilter(false); }}
+                    >
+                      All Categories
+                    </button>
+                    {Object.keys(CATEGORY_COLORS).filter(c => c !== 'Other').map(cat => (
+                      <button 
+                        key={cat}
+                        className={`filter-option ${selectedCategory === cat.toLowerCase() ? 'active' : ''}`}
+                        onClick={() => { setSelectedCategory(cat.toLowerCase()); setShowFilter(false); }}
+                      >
+                        {cat}
+                      </button>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="empty-state">
-                <div className="empty-state-icon">R</div>
-                <h3>No transactions found</h3>
-                <p>No transactions found for the selected date range</p>
-              </div>
-            )}
+              
+              <button className="view-all-btn" onClick={() => navigate('/transactions')}>
+                View All <FiArrowRight size={16} />
+              </button>
+            </div>
           </div>
+
+          {transactions.length > 0 ? (
+            <table className="transactions-table">
+              <thead>
+                <tr>
+                  <th>Transaction</th>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((transaction) => (
+                  <tr key={transaction._id}>
+                    <td>
+                      <div className="transaction-info">
+                        <div className={`transaction-icon ${transaction.type}`}>
+                          {getCategoryIcon(transaction.category)}
+                        </div>
+                        <div className="transaction-details">
+                          <h4>{transaction.description || 'Transaction'}</h4>
+                          <p>{transaction.category}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{new Date(transaction.date).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}</td>
+                    <td>{transaction.category}</td>
+                    <td>
+                      <span className={`transaction-amount ${transaction.type}`}>
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="transaction-actions">
+                        <button className="action-icon-btn" title="Edit">
+                          <FiEdit2 size={16} />
+                        </button>
+                        <button 
+                          className="action-icon-btn delete" 
+                          title="Delete"
+                          onClick={() => handleDelete(transaction._id)}
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">📊</div>
+              <h3>No recent transactions</h3>
+              <p>Start tracking your finances by adding your first transaction</p>
+            </div>
+          )}
         </section>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`toast ${toast.type}`}>
+          <span className="toast-icon">
+            {toast.type === 'success' ? <FiCheckCircle /> : <FiX />}
+          </span>
+          <span className="toast-message">{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Reports;
+

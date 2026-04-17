@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api';
 import { AuthContext } from '../AuthContext';
 import { 
   FiUser, FiLock, FiBell, FiGlobe, FiMoon, FiSun, FiCheck, 
@@ -8,18 +8,6 @@ import {
   FiSmartphone, FiKey, FiShield, FiEye, FiEyeOff
 } from 'react-icons/fi';
 import './Settings.css';
-
-const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
-});
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 const Settings = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -693,3 +681,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

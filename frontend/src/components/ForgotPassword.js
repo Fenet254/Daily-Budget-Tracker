@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiMail, FiCheck, FiAlertCircle } from 'react-icons/fi';
-import axios from 'axios';
+import API from '../api';
 import './Auth.css';
-
-const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
-});
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -22,14 +18,11 @@ const ForgotPassword = () => {
     setMessage(null);
 
     try {
-      // Simulate API call for password reset
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For demo purposes, show success message
-      setMessage('Password reset link has been sent to your email address. Please check your inbox.');
+      const response = await API.post('/auth/forgot-password', { email });
+      setMessage('Password reset link sent to your email. Check your inbox/spam folder.');
       setEmail('');
     } catch (err) {
-      setError('Failed to send reset link. Please try again.');
+      setError(err.response?.data?.msg || 'Failed to send reset link. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -118,3 +111,4 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
+
