@@ -1,12 +1,16 @@
-# Task Progress: Change localhost from 3000
+# Daily Budget Tracker - Task Progress
 
-## Completed Steps:
-- [x] Created frontend/.env with PORT=3001 (React dev server now runs on 3001)
-- [x] Updated backend/server.js CORS origins: removed 'http://localhost:3000'
+## Current Task: Fix Dashboard.css image import error and set brown color theme
+
+✅ **Step 1:** Create TODO.md to track progress (done)
+
+✅ **Step 2:** Plan approved by user (okay)
+
+✅ **Step 3:** Edit frontend/src/components/Dashboard.css to fix background-image (remove image URL, enhance brown gradient) - SUCCESS
 
 ## Next Steps:
-- Restart frontend dev server: `cd frontend && npm start`
-- Backend already on 5001, no restart needed
-- Access app at http://localhost:3001
+- **Step 4:** Verify fix by running `cd frontend && npm start` or `npm run build`
+- **Step 5:** Clean up temp files (Dashboard.css.fixed, Dashboard.css.new, Dashboard.js.new)
+- **Step 6:** Complete task
 
-Task complete.
+Updated: After Step 3 complete.

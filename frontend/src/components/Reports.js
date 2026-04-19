@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, TrendingUpDown, Flame, Zap, Award, Sparkles } from 'lucide-react';
+import { TrendingUpDown, Zap, Award, Sparkles, Flame } from 'lucide-react';
 import API from '../api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
@@ -56,20 +56,6 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
-// Get time-based greeting
-const getTimeBasedGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) {
-    return 'Good morning';
-  } else if (hour >= 12 && hour < 17) {
-    return 'Good afternoon';
-  } else if (hour >= 17 && hour < 22) {
-    return 'Good evening';
-  } else {
-    return 'Good night';
-  }
-};
-
 // Premium Sparkline Component for KPIs
 const Sparkline = ({ data, color, type = 'income' }) => (
   <div className="sparkline-container">
@@ -117,6 +103,19 @@ const AnimatedCounter = ({ value, prefix = '' }) => {
   >{prefix}{formatCurrency(displayValue)}</motion.span>;
 };
 
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return 'Good morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good afternoon';
+  } else if (hour >= 17 && hour < 22) {
+    return 'Good evening';
+  } else {
+    return 'Good night';
+  }
+};
+
 const Reports = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -129,20 +128,8 @@ const Reports = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [toast, setToast] = useState(null);
   const [chartData, setChartData] = useState([]);
-  const [greeting, setGreeting] = useState(getTimeBasedGreeting());
 
-  // Update greeting every minute to reflect time changes
-  useEffect(() => {
-    const updateGreeting = () => {
-      setGreeting(getTimeBasedGreeting());
-    };
-    
-    // Update immediately and then every minute
-    updateGreeting();
-    const interval = setInterval(updateGreeting, 60000);
-    
-    return () => clearInterval(interval);
-  }, []);
+
 
   useEffect(() => {
     fetchSummary();
@@ -406,67 +393,7 @@ const Reports = () => {
     <div className="dashboard">
       <div className="dashboard-container">
       
-        {/* Premium Hero Section */}
-        <motion.header 
-          className="dashboard-hero" 
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <div className="hero-content">
-            <div className="hero-left">
-              <motion.h1 
-                className="hero-title"
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-              >
-                {greeting}, {user?.name || 'User'}
-              </motion.h1>
-              <motion.p 
-                className="hero-insight"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                Detailed Financial Analytics & Insights
-              </motion.p>
-            </div>
-          </div>
-          
-          <motion.div 
-            className="hero-controls"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="date-selector glass">
-              <motion.button 
-                className={`date-btn ${dateRange === 'today' ? 'active' : ''}`}
-                onClick={() => setDateRange('today')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Today
-              </motion.button>
-              <motion.button 
-                className={`date-btn ${dateRange === 'week' ? 'active' : ''}`}
-                onClick={() => setDateRange('week')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Week
-              </motion.button>
-              <motion.button 
-                className={`date-btn ${dateRange === 'month' ? 'active' : ''}`}
-                onClick={() => setDateRange('month')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Month
-              </motion.button>
-            </div>
-          </motion.div>
-        </motion.header>
+
 
         {/* Premium Asymmetric KPI Section */}
         <motion.section 

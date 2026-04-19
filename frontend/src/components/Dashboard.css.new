@@ -1,28 +1,13 @@
 /* Premium Startup Dashboard Landing - Navy/Purple Glassmorphism v1.0 */
 /* Luxury FinTech: Apple-level clean + SaaS startup + elegant ad */
 
-.dashboard-wrapper {
+:local(.dashboard-wrapper) {
   min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 40%, #16213e 100%);
   position: relative;
   color: white;
   overflow-x: hidden;
   font-family: 'Inter', -apple-system, sans-serif;
-background-image: linear-gradient(rgba(101,67,33,0.98), rgba(121,85,72,0.95));
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
-
-.dashboard-wrapper::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: inherit;
-  z-index: 0;
-  border-radius: inherit;
 }
 
 /* Floating Orbs - Subtle luxury BG */
@@ -41,7 +26,7 @@ background-image: linear-gradient(rgba(101,67,33,0.98), rgba(121,85,72,0.95));
   content: '';
   position: absolute;
   border-radius: 50%;
-background: linear-gradient(45deg, transparent, rgba(139,92,61, 0.15), transparent);
+  background: linear-gradient(45deg, transparent, rgba(106, 76, 147, 0.1), transparent);
   animation: float 20s infinite linear;
 }
 
@@ -379,3 +364,4 @@ html {
 * {
   box-sizing: border-box;
 }
+
