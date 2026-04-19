@@ -11,7 +11,7 @@ import {
 import { 
   FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, 
   FiPieChart, FiSavings, FiPlus, FiFileText, FiTarget, FiDownload,
-  FiEdit2, FiTrash2, FiArrowRight, FiFilter,
+  FiEdit2, FiTrash2, FiArrowRight, FiFilter, FiSearch,
   FiShoppingCart, FiCoffee, FiHome, FiMusic, FiTruck, FiZap,
   FiAlertCircle, FiCheckCircle, FiX
 } from 'react-icons/fi';
@@ -428,10 +428,9 @@ const Reports = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                Stay on track with your finances
+                Detailed Financial Analytics & Insights
               </motion.p>
             </div>
-
           </div>
           
           <motion.div 
@@ -715,13 +714,13 @@ const Reports = () => {
             <span className="quick-action-icon"><FiPlus /></span>
             <span className="quick-action-label">Add Transaction</span>
           </button>
-          <button className="quick-action-btn" onClick={() => navigate('/reports')}>
+          <button className="quick-action-btn" onClick={() => navigate('/transactions')}>
             <span className="quick-action-icon"><FiFileText /></span>
-            <span className="quick-action-label">View Reports</span>
+            <span className="quick-action-label">View Transactions</span>
           </button>
           <button className="quick-action-btn" onClick={() => navigate('/budgets')}>
             <span className="quick-action-icon"><FiTarget /></span>
-            <span className="quick-action-label">Set Budget</span>
+            <span className="quick-action-label">Manage Budgets</span>
           </button>
           <button className="quick-action-btn" onClick={() => handleExport('pdf')}>
             <span className="quick-action-icon"><FiDownload /></span>
@@ -848,4 +847,3 @@ const Reports = () => {
 };
 
 export default Reports;
-

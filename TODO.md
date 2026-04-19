@@ -1,17 +1,12 @@
-# Daily Budget Tracker Redesign TODO
+# Task Progress: Change localhost from 3000
 
-## Current Task: Redesign Dashboard & Reports (Swap Designs)
+## Completed Steps:
+- [x] Created frontend/.env with PORT=3001 (React dev server now runs on 3001)
+- [x] Updated backend/server.js CORS origins: removed 'http://localhost:3000'
 
-### Steps (0/6 completed):
+## Next Steps:
+- Restart frontend dev server: `cd frontend && npm start`
+- Backend already on 5001, no restart needed
+- Access app at http://localhost:3001
 
-- [ ] 1. Create TODO.md ✅ **(DONE)**
-- [ ] 2. Update Reports.js with current Dashboard.js content
-- [ ] 3. Update Reports.css with current Dashboard.css content  
-- [ ] 4. Redesign Dashboard.js with new impressive layout (left blank, right content)
-- [ ] 5. Update Dashboard.css with new styles
-- [ ] 6. Add /reports route to App.js
-- [ ] 7. Test navigation and responsive design
-- [ ] 8. attempt_completion
-
-**Progress: 1/8 steps completed**
-
+Task complete.

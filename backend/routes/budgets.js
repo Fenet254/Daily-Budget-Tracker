@@ -139,4 +139,38 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
+// @route   PUT /budgets/:id/reset
+// @desc    Reset spent amount for budget (e.g., new period)
+// @access  Private
+router.put('/:id/reset', protect, async (req, res) => {
+  try {
+    let budget = await Budget.findById(req.params.id);
+    if (!budget) {
+      return res.status(404).json({ message: 'Budget not found' });
+    }
+
+    if (budget.user.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Reset spent and optionally update dates
+    budget.spent = 0;
+    budget.lastResetDate = new Date(); // Add this field if schema supports or ignore
+
+    await budget.save();
+
+    res.json({ 
+      message: 'Budget reset successfully', 
+      budget: {
+        ...budget.toObject(),
+        spent: 0,
+        percentage: 0
+      }
+    });
+  } catch (error) {
+    console.error('Error resetting budget:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;

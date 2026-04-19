@@ -127,9 +127,52 @@ router.put('/:id', protect, async (req, res) => {
       req.body.amount = parseFloat(req.body.amount);
     }
 
+    // Get original transaction for budget adjustment
+    const originalTransaction = await Transaction.findById(req.params.id);
+    
+    // Update transaction
     transaction = await Transaction.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
+
+    // Adjust budget if expense and changes affect amount/category
+    if (originalTransaction.type === 'expense' && transaction.type === 'expense') {
+      const amountDiff = transaction.amount - originalTransaction.amount;
+      const categoryChanged = transaction.category.toLowerCase() !== originalTransaction.category.toLowerCase();
+      
+      if (amountDiff !== 0 || categoryChanged) {
+        // Adjust old budget
+        const oldBudget = await Budget.findOne({
+          user: req.user.id,
+          category: { $regex: new RegExp(originalTransaction.category, 'i') },
+        });
+        if (oldBudget) {
+          oldBudget.spent = Math.max(0, (oldBudget.spent || 0) - originalTransaction.amount);
+          await oldBudget.save();
+        }
+        
+        // Adjust new budget if category changed
+        if (categoryChanged) {
+          const newBudget = await Budget.findOne({
+            user: req.user.id,
+            category: { $regex: new RegExp(transaction.category, 'i') },
+          });
+          if (newBudget) {
+            newBudget.spent = (newBudget.spent || 0) + transaction.amount;
+            await newBudget.save();
+          }
+        } else if (amountDiff !== 0) {
+          const updatedBudget = await Budget.findOne({
+            user: req.user.id,
+            category: { $regex: new RegExp(transaction.category, 'i') },
+          });
+          if (updatedBudget) {
+            updatedBudget.spent = Math.max(0, (updatedBudget.spent || 0) + amountDiff);
+            await updatedBudget.save();
+          }
+        }
+      }
+    }
 
     res.json(transaction);
   } catch (error) {
@@ -149,6 +192,19 @@ router.delete('/:id', protect, async (req, res) => {
 
     if (transaction.user.toString() !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Adjust budget before delete if expense
+    if (transaction.type === 'expense') {
+      const budget = await Budget.findOne({
+        user: req.user.id,
+        category: { $regex: new RegExp(transaction.category, 'i') },
+      });
+      if (budget) {
+        budget.spent = Math.max(0, (budget.spent || 0) - transaction.amount);
+        await budget.save();
+        console.log(`Reduced budget spent for ${transaction.category} by ${transaction.amount}`);
+      }
     }
 
     await Transaction.findByIdAndRemove(req.params.id);

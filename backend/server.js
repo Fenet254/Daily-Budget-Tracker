@@ -8,13 +8,13 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3004'], 
+  origin: ['http://localhost:3001', 'http://localhost:3004', 'http://localhost:3006'], 
   credentials: true
 }));
 app.use(express.json()); 
 
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/daily-budget-tracker', {
+mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/daily-budget-tracker', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })

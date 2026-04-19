@@ -1,19 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import API from '../api';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { 
-  FiPlus, FiEdit2, FiTrash2, FiDownload, FiFilter, FiSun, FiMoon,
-  FiAlertCircle, FiCheckCircle, FiX, FiChevronDown, FiTrendingUp,
+  FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiDownload, FiFilter,
+  FiAlertCircle, FiCheckCircle, FiX, FiTrendingUp,
   FiCoffee, FiTruck, FiHome, FiMusic, FiShoppingCart, FiDollarSign,
-  FiCreditCard, FiTarget, FiCalendar, FiFileText, FiGrid, FiList, FiSearch,
-  FiTrendingUp as FiTrendingUpIcon,
-  FiAward, FiSmartphone, FiShare2, FiZap
+  FiCreditCard, FiTarget, FiFileText, FiGrid, FiList, FiSearch,
+  FiAward, FiZap
 } from 'react-icons/fi';
-import { GiPiggyBank, GiWallet, GiTakeMyMoney, GiMoneyStack } from 'react-icons/gi';
+import { GiPiggyBank } from 'react-icons/gi';
 import './Budgets.css';
 
 // Confetti component for celebration
@@ -35,33 +33,6 @@ const Confetti = ({ active }) => {
       ))}
     </div>
   );
-};
-
-// Animated Counter Component
-const AnimatedCounter = ({ value, prefix = '', suffix = '' }) => {
-  const [count, setCount] = useState(0);
-  const duration = 1500;
-  
-  useEffect(() => {
-    let startTime;
-    const startValue = 0;
-    const endValue = value;
-    
-    const animate = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(startValue + (endValue - startValue) * easeOut));
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-    
-    requestAnimationFrame(animate);
-  }, [value]);
-  
-  return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
 };
 
 // Category icons mapping
@@ -118,13 +89,6 @@ const formatCurrency = (amount) => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount || 0);
-};
-
-// Get progress color based on percentage
-const getProgressColor = (percentage) => {
-  if (percentage < 70) return 'var(--color-income)';
-  if (percentage < 90) return '#F59E0B';
-  return 'var(--color-expense)';
 };
 
 // Get progress status
@@ -215,8 +179,6 @@ const Budgets = () => {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState('light');
   const [viewMode, setViewMode] = useState('cards');
-  const [period, setPeriod] = useState('this-month');
-  const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   
@@ -241,16 +203,10 @@ const Budgets = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [sortBy, setSortBy] = useState('category');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-  
-
-
 
   // Load data on mount
   useEffect(() => {
     fetchBudgets();
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
     
     // Check if budgets need refresh after returning from Transactions page
     const needsRefresh = localStorage.getItem('budgetsNeedRefresh');
@@ -258,7 +214,7 @@ const Budgets = () => {
       fetchBudgets();
       localStorage.removeItem('budgetsNeedRefresh');
     }
-  }, [period, selectedMonth, selectedYear]);
+  }, []);
 
   // Fetch budgets from API
   const fetchBudgets = async () => {
@@ -279,20 +235,11 @@ const Budgets = () => {
     setToast({ message, type });
   };
 
-  // Toggle theme
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-  };
-
   // Handle form input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -306,10 +253,10 @@ const Budgets = () => {
       };
       
       if (editingId) {
-        const res = await API.put(`/budgets/${editingId}`, budgetData);
+        await API.put(`/budgets/${editingId}`, budgetData);
         showToast('Budget updated successfully', 'success');
       } else {
-        const res = await API.post('/budgets', budgetData);
+        await API.post('/budgets', budgetData);
         showToast('Budget created successfully', 'success');
         // Trigger confetti for new budget
         setShowConfetti(true);
@@ -319,14 +266,11 @@ const Budgets = () => {
       fetchBudgets();
     } catch (error) {
       console.error('Error saving budget:', error);
-      // Show more detailed error message if available
       let errorMessage = 'Failed to save budget';
       
       if (error.response) {
         if (error.response.status === 401) {
           errorMessage = 'Your session has expired. Please log in again.';
-          // Optionally redirect to login
-          // window.location.href = '/login';
         } else if (error.response.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response.data?.error) {
@@ -354,8 +298,24 @@ const Budgets = () => {
     setShowModal(true);
   };
 
+  // Handle reset budget
+  const handleReset = async (id) => {
+    if (!window.confirm('Reset spent amount for this budget to 0? This starts a new tracking period.')) return;
+    
+    try {
+      await API.put(`/budgets/${id}/reset`);
+      showToast('Budget reset successfully! Fresh start for this period.', 'success');
+      fetchBudgets();
+    } catch (error) {
+      console.error('Error resetting budget:', error);
+      showToast('Failed to reset budget', 'error');
+    }
+  };
+
   // Handle delete budget
   const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this budget?')) return;
+    
     try {
       await API.delete(`/budgets/${id}`);
       showToast('Budget deleted successfully', 'success');
@@ -371,7 +331,6 @@ const Budgets = () => {
     setFormData({ category: '', amount: '', period: 'monthly', note: '' });
     setEditingId(null);
     setSelectedColor('#3B82F6');
-    setShowForm(false);
     setShowModal(false);
   };
 
@@ -380,15 +339,6 @@ const Budgets = () => {
     setModalMode('add');
     resetForm();
     setShowModal(true);
-  };
-
-  // Export to PDF (simulated)
-  const exportToPDF = () => {
-    showToast('Preparing PDF export...', 'success');
-    // In a real app, you would use a library like jsPDF or html2pdf
-    setTimeout(() => {
-      showToast('Budgets exported to PDF', 'success');
-    }, 1500);
   };
 
   // Export to CSV
@@ -404,7 +354,7 @@ const Budgets = () => {
     
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.join(','))
+      ...rows.map(row => row.map(field => `"${field}"`).join(','))
     ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -456,7 +406,7 @@ const Budgets = () => {
       }));
   };
 
-  // Generate smart warnings
+  // Get budget warnings
   const getWarnings = () => {
     const warnings = [];
     filteredBudgets.forEach(budget => {
@@ -465,7 +415,7 @@ const Budgets = () => {
         warnings.push({
           type: 'danger',
           icon: <FiAlertCircle />,
-message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - budget.amount)}`,
+          message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - budget.amount)}`,
           category: budget.category
         });
       } else if (percentage >= 70) {
@@ -491,8 +441,8 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
     return warnings.slice(0, 4);
   };
 
-  // AI Insights Generator
-  const getAIInsights = () => {
+  // Get insights
+  const getInsights = () => {
     const insights = [];
     
     // Calculate spending trends
@@ -544,7 +494,6 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
   // Calculate totals
   const totalBudgeted = filteredBudgets.reduce((sum, b) => sum + b.amount, 0);
   const totalSpent = filteredBudgets.reduce((sum, b) => sum + b.spent, 0);
-  const totalRemaining = totalBudgeted - totalSpent;
 
   // Loading state
   if (loading) {
@@ -615,9 +564,6 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
           </div>
         </header>
 
-
-
-
         <section className="budget-cards-section">
           <div className="section-header">
             <h2 className="section-title">Budget Categories</h2>
@@ -659,7 +605,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                <option value="category">Sort by Category</option>
+                <option value="category">Sort by Category Asc</option>
                 <option value="highest-spending">Sort by Highest Spending</option>
                 <option value="remaining">Sort by Remaining</option>
               </select>
@@ -685,7 +631,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                 <FiDownload size={18} />
                 CSV
               </button>
-              <button className="export-btn pdf-btn" onClick={exportToPDF}>
+              <button className="export-btn pdf-btn" onClick={() => showToast('PDF export coming soon!', 'success')}>
                 <FiFileText size={18} />
                 PDF
               </button>
@@ -702,7 +648,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                   
                   return (
                     <div 
-                      key={budget._id} 
+                      key={budget._id || index} 
                       className="budget-card"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
@@ -730,6 +676,13 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                             title="Delete"
                           >
                             <FiTrash2 size={16} />
+                          </button>
+                          <button 
+                            className="card-action-btn reset"
+                            onClick={() => handleReset(budget._id)}
+                            title="Reset Spent"
+                          >
+                            <FiRefreshCw size={16} />
                           </button>
                         </div>
                       </div>
@@ -777,7 +730,6 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
               )}
             </div>
           ) : (
-            /* Table View */
             <div className="budgets-table-container">
               <table className="budgets-table">
                 <thead>
@@ -798,7 +750,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                     const categoryInfo = CATEGORY_OPTIONS.find(c => c.value === budget.category.toLowerCase()) || { color: '#64748B', icon: <FiCreditCard /> };
                     
                     return (
-                      <tr key={budget._id}>
+                      <tr key={budget._id || Math.random()}>
                         <td>
                           <div className="category-cell">
                             <div 
@@ -832,14 +784,23 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                             <button 
                               className="table-action-btn edit"
                               onClick={() => handleEdit(budget)}
+                              title="Edit"
                             >
                               <FiEdit2 size={16} />
                             </button>
                             <button 
                               className="table-action-btn delete"
                               onClick={() => handleDelete(budget._id)}
+                              title="Delete"
                             >
                               <FiTrash2 size={16} />
+                            </button>
+                            <button 
+                              className="table-action-btn reset"
+                              onClick={() => handleReset(budget._id)}
+                              title="Reset Spent"
+                            >
+                              <FiRefreshCw size={16} />
                             </button>
                           </div>
                         </td>
@@ -848,6 +809,12 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                   })}
                 </tbody>
               </table>
+              {filteredBudgets.length === 0 && (
+                <div className="empty-table-state">
+                  <FiTarget size={64} />
+                  <p>No budgets match your current filters</p>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -886,7 +853,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                     />
                     <Legend />
                     <Bar dataKey="budgeted" name="Budgeted" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="spent" name="Spent" fill="var(--color-expense)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="spent" name="Spent" fill="var(--color-danger)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -894,7 +861,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
             
             <div className="chart-card">
               <div className="chart-header">
-                <h3>Budget Distribution</h3>
+                <h3>Expense Breakdown</h3>
               </div>
               <div className="chart-container" style={{ height: '250px' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -920,20 +887,37 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
                       }}
                       formatter={(value) => formatCurrency(value)}
                     />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="doughnut-legend">
-                {getExpenseBreakdown().slice(0, 4).map((item, index) => (
-                  <div key={index} className="legend-item">
-                    <span className="legend-label">
-                      <span className="legend-dot" style={{ backgroundColor: item.color }}></span>
-                      {item.name}
-                    </span>
-                    <span className="legend-value">{formatCurrency(item.value)}</span>
-                  </div>
-                ))}
-              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Warnings and Insights */}
+        {(getWarnings().length > 0 || getInsights().length > 0) && (
+          <section className="insights-section">
+            <div className="insights-grid">
+              {getWarnings().map((warning, index) => (
+                <div key={index} className={`insight-card warning-${warning.type}`}>
+                  <div className="insight-icon">{warning.icon}</div>
+                  {warning.message ? (
+                    <div>
+                      <div className="insight-message">{warning.message}</div>
+                    </div>
+                  ) : (
+                    <div className="insight-title">⚠️ {warning.category} needs attention</div>
+                  )}
+                </div>
+              ))}
+              {getInsights().slice(0, 3).map((insight, index) => (
+                <div key={index} className="insight-card" style={{ borderLeftColor: insight.color }}>
+                  <div className="insight-icon" style={{ color: insight.color }}>{insight.icon}</div>
+                  <div className="insight-title">{insight.title}</div>
+                  <div className="insight-description">{insight.description}</div>
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -980,6 +964,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
               placeholder="Enter amount"
               required
               min="0"
+              step="0.01"
             />
           </div>
           
@@ -1005,12 +990,12 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
           
           <div className="form-group">
             <label>Note (Optional)</label>
-            <input
-              type="text"
+            <textarea
               name="note"
               value={formData.note}
               onChange={handleChange}
-              placeholder="Add a note..."
+              placeholder="Add a note for this budget..."
+              rows={2}
             />
           </div>
           
@@ -1020,7 +1005,7 @@ message: `${budget.category} budget exceeded by ${formatCurrency(budget.spent - 
             </button>
             <button type="submit" className="btn-submit">
               <FiPlus size={18} />
-              {modalMode === 'add' ? 'Create Budget' : ' Update Budget'}
+              {modalMode === 'add' ? 'Create Budget' : 'Update Budget'}
             </button>
           </div>
         </form>
