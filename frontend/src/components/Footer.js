@@ -21,7 +21,7 @@ const Footer = () => {
         {/* Center Section - Navigation Links */}
         <div className="footer-section footer-center">
           <nav className="footer-nav">
-            <a href="/dashboard" className="footer-link">Dashboard</a>
+            <a href="/" className="footer-link">Dashboard</a>
             <span className="footer-divider">|</span>
             <a href="/transactions" className="footer-link">Transactions</a>
             <span className="footer-divider">|</span>

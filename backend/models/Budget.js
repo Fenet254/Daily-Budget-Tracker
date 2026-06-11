@@ -38,6 +38,19 @@ const budgetSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  lastResetDate: {
+    type: Date,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+}, {
+  timestamps: true
 });
+
+// Indexes
+budgetSchema.index({ user: 1, category: 1 });
+budgetSchema.index({ user: 1, isActive: 1 });
 
 module.exports = mongoose.model('Budget', budgetSchema);

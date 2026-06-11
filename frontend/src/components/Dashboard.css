@@ -1,17 +1,25 @@
-/* Premium Startup Dashboard Landing - Navy/Purple Glassmorphism v1.0 */
-/* Luxury FinTech: Apple-level clean + SaaS startup + elegant ad */
+
 
 .dashboard-wrapper {
   min-height: 100vh;
   position: relative;
-  color: white;
+  /* Keep background dark so text is readable */
+  color: #0f172a;
   overflow-x: hidden;
   font-family: 'Inter', -apple-system, sans-serif;
-background-image: linear-gradient(rgba(101,67,33,0.98), rgba(121,85,72,0.95));
+  background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 58, 138, 0.4)), url("../../public/images/dashboard-bg.jpg");
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   background-attachment: fixed;
 }
+
+/* Force dashboard text to be BLACK for readability */
+.dashboard-wrapper,
+.dashboard-wrapper * {
+  color: #000 !important;
+}
+
 
 .dashboard-wrapper::before {
   content: '';
@@ -20,7 +28,7 @@ background-image: linear-gradient(rgba(101,67,33,0.98), rgba(121,85,72,0.95));
   left: 0;
   right: 0;
   bottom: 0;
-  background: inherit;
+  background: #ffffff;
   z-index: 0;
   border-radius: inherit;
 }
@@ -41,7 +49,7 @@ background-image: linear-gradient(rgba(101,67,33,0.98), rgba(121,85,72,0.95));
   content: '';
   position: absolute;
   border-radius: 50%;
-background: linear-gradient(45deg, transparent, rgba(139,92,61, 0.15), transparent);
+background: radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, transparent 70%);
   animation: float 20s infinite linear;
 }
 

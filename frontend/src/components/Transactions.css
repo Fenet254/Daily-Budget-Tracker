@@ -1,6 +1,4 @@
-/* Transactions Page - Modern Fintech Style */
 
-/* Import Inter Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* CSS Variables */
@@ -131,10 +129,11 @@
 }
 
 .type-toggle button.active {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  background: #ffffff;
+  color: #000000;
   box-shadow: var(--shadow-sm);
 }
+
 
 .type-toggle button.active.income-type {
   color: var(--income-color);
@@ -432,7 +431,7 @@
   background: var(--bg-primary);
 }
 
-/* Type Badge */
+
 .type-badge {
   display: inline-flex;
   align-items: center;

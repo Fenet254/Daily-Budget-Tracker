@@ -1,6 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import API from '../api';
 import { AuthContext } from '../AuthContext';
+import { useCallback } from 'react';
 import { FiUser, FiPhone, FiMapPin, FiGlobe, FiDollarSign, FiCalendar, FiCamera, FiEdit2, FiSave, FiX, FiCheck, FiAlertCircle, FiWifi, FiMessageCircle, FiMail, FiHeart, FiShield, FiTrendingUp, FiTarget, FiAward } from 'react-icons/fi';
 import { FaWhatsapp, FaTelegram, FaFacebook, FaInstagram, FaCcVisa } from 'react-icons/fa';
 import { FiZap } from 'react-icons/fi';
@@ -112,24 +113,50 @@ const StatCard = ({ icon, label, value, subValue, color, gradient, prefix = '', 
 const Profile = () => {
   const { user, setUser } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
 
-  const currency = user?.preferences?.currency || 'ETB';
+  const [formData, setFormData] = useState({});
+  const [fullUser, setFullUser] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    profilePhoto: user?.profilePhoto || '',
-    address: { country: user?.address?.country || '' },
-    preferences: {
-      theme: user?.preferences?.theme || 'system',
-      currency: user?.preferences?.currency || 'ETB',
-      language: user?.preferences?.language || 'en'
-    }
-  });
+  // Fetch full profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      try {
+        setProfileLoading(true);
+        const res = await API.get('/auth/me');
+        setFullUser(res.data);
+        setUser(res.data);
+        setFormData({
+          name: res.data.name || '',
+          email: res.data.email || '',
+          phone: res.data.phone || '',
+          profilePhoto: res.data.profilePhoto || '',
+          bio: res.data.bio || '',
+          address: res.data.address || { country: '' },
+          dateOfBirth: res.data.dateOfBirth || '',
+          preferences: res.data.preferences || {
+            theme: 'system',
+            currency: 'ETB',
+            language: 'en'
+          },
+          moneyPersonality: res.data.moneyPersonality || 'None'
+        });
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+        setToast({ type: 'error', message: 'Failed to load profile data' });
+      } finally {
+        setProfileLoading(false);
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [user]);
+
+  const currency = formData.preferences?.currency || 'ETB';
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -139,27 +166,40 @@ const Profile = () => {
     }));
   };
 
+  const handlePhotoUpload = useCallback((e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData(prev => ({ ...prev, profilePhoto: e.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
   const handleSave = async () => {
     setLoading(true);
     try {
-      const res = await API.put('/users/profile', formData);
+      const res = await API.put('/auth/profile', formData);
+      setFullUser(res.data);
       setUser(res.data);
       setIsEditing(false);
       setToast({ type: 'success', message: 'Profile updated successfully!' });
     } catch (error) {
-      setToast({ type: 'error', message: 'Failed to update profile' });
+      setToast({ type: 'error', message: error.response?.data?.msg || 'Failed to update profile' });
     }
     setLoading(false);
   };
 
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Handle photo upload logic
-    }
-  };
-
-  if (!user) return <div className="profile-empty">Please log in to view your profile</div>;
+  if (!user || profileLoading) {
+    return (
+      <div className="profile-container" style={{ padding: '40px 20px', minHeight: '60vh' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          Loading profile...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-container">
@@ -184,11 +224,11 @@ const Profile = () => {
           <div className="profile-info">
             <h1>{formData.name || 'User'}</h1>
             <div className="profile-badges">
-              {user.personality && (
+{fullUser?.moneyPersonality && fullUser.moneyPersonality !== 'None' && (
                 <span className="personality-badge" style={{ 
-                  background: PERSONALITY_BADGES[user.personality]?.gradient || '#64748B'
+                  background: PERSONALITY_BADGES[fullUser.moneyPersonality]?.gradient || '#64748B'
                 }}>
-                  {user.personality}
+                  {fullUser.moneyPersonality}
                 </span>
               )}
               {user.isVerified && <span className="verified-badge">Verified</span>}
@@ -252,44 +292,45 @@ const Profile = () => {
       <div className="stats-grid">
         <StatCard
           icon={<FiDollarSign />}
-          label="Monthly Income"
-          value={user.financialStats?.monthlyIncome || 0}
+          label="Monthly Budget"
+          value={fullUser?.financialStats?.monthlyBudget || 5000}
           currency={currency}
           color="#10B981"
         />
         <StatCard
           icon={<GiPiggyBank />}
-          label="Total Savings"
-          value={user.financialStats?.totalSavings || 0}
+          label="Savings Goal"
+          value={fullUser?.financialStats?.financialGoal || 10000}
           currency={currency}
           color="#3B82F6"
           showProgress={true}
-          progress={user.savingsProgress || 75}
+          progress={fullUser?.financialStats?.goalProgress || 45}
         />
         <StatCard
           icon={<GiWallet />}
-          label="Current Balance"
-          value={user.financialStats?.currentBalance || 0}
-          currency={currency}
+          label="Savings Streak"
+          value={fullUser?.financialStats?.savingsStreak || 12}
+          subValue="days"
           color="#F59E0B"
         />
         <StatCard
           icon={<FiTrendingUp />}
-          label="Avg Savings Rate"
-          value={user.financialStats?.savingsRate || 0}
+          label="Goal Progress"
+          value={fullUser?.financialStats?.goalProgress || 45}
           suffix="%"
           color="#8B5CF6"
-          progress={65}
         />
       </div>
 
       {/* Personality Test CTA */}
-      {(!user.personality || user.personality === 'None') && (
+      {(!fullUser?.moneyPersonality || fullUser.moneyPersonality === 'None') && (
         <div className="personality-cta">
           <FiZap className="cta-icon" />
           <h3>Discover Your Money Personality!</h3>
           <p>Take our 2-minute quiz to unlock personalized insights and badges</p>
-          <button className="btn btn-primary">Start Quiz</button>
+          <button className="btn btn-primary" onClick={() => setToast({type: 'info', message: 'Personality quiz coming soon!'})}>
+            Start Quiz
+          </button>
         </div>
       )}
     </div>

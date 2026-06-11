@@ -280,7 +280,7 @@ const Register = () => {
                 required
               />
               <span>
-                I agree to the <Link to="/">Privacy Policy</Link> and <Link to="/">Terms of Service</Link>
+                I agree to the <Link to="/privacy">Privacy Policy</Link> and <Link to="/terms">Terms of Service</Link>
               </span>
             </label>
 
@@ -327,9 +327,9 @@ const Register = () => {
         <footer className="auth-footer">
           <p className="auth-copyright">&copy; 2026 Daily Budget Tracker. All rights reserved.</p>
           <div className="auth-footer-links">
-            <Link to="/" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>
-            <Link to="/" target="_blank" rel="noopener noreferrer">Terms of Service</Link>
-            <Link to="/" target="_blank" rel="noopener noreferrer">Contact</Link>
+            <Link to="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>
+            <Link to="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>
+            <Link to="/contact" target="_blank" rel="noopener noreferrer">Contact</Link>
           </div>
         </footer>
       </div>

@@ -1,78 +1,236 @@
-.sms-import {
+.sms-import-container {
   padding: 2rem;
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
 }
 
-.sms-import h1 {
+.sms-header {
   text-align: center;
   margin-bottom: 2rem;
-  color: #333;
 }
 
-.sms-form {
+.sms-header h1 {
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.sms-header p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.sms-form-card {
   background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 2rem;
   margin-bottom: 2rem;
 }
 
-.sms-form textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  resize: vertical;
-  min-height: 100px;
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
 }
 
-.sms-form button {
+.input-group textarea {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: monospace;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.2s;
+}
+
+.input-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.preview-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.875rem;
+  background: #6b7280;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background 0.2s;
 }
 
-.sms-form button:hover {
-  background-color: #0056b3;
+.preview-btn:hover:not(:disabled) {
+  background: #4b5563;
 }
 
-.message {
-  padding: 0.75rem;
-  border-radius: 4px;
+.preview-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.preview-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.preview-card.success {
+  background: #ecfdf5;
+  border-left-color: #10b981;
+}
+
+.preview-card.error {
+  background: #fef2f2;
+  border-left-color: #ef4444;
+}
+
+.preview-card h3 {
   margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.preview-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.value.income {
+  color: #10b981;
+}
+
+.value.confidence {
+  color: #3b82f6;
+}
+
+.import-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
+
+.import-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.import-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.global-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.global-message.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.global-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.result-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 2rem;
   text-align: center;
 }
 
-.message.success {
-  background-color: #d4edda;
-  color: #155724;
+.result-card h3 {
+  color: #10b981;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
 }
 
-.message.error {
-  background-color: #f8d7da;
-  color: #721c24;
+.transaction-details {
+  text-align: left;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
-.imported-transaction {
-  background: white;
+.transaction-details p {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.examples {
+  background: #f8fafc;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #3b82f6;
 }
 
-.imported-transaction h2 {
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.imported-transaction p {
+.examples h4 {
   margin-bottom: 0.5rem;
+  color: #1e40af;
+}
+
+.examples code {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-family: monospace;
+  display: block;
+  border-left: 3px solid #3b82f6;
+  color: #1f2937;
+}
+
+@media (max-width: 768px) {
+  .sms-import-container {
+    padding: 1rem;
+  }
+  
+  .preview-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }

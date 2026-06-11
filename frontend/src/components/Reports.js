@@ -311,14 +311,12 @@ const Reports = () => {
       }
     
       transactions.forEach(t => {
+        if (!t?.date) return;
         const dateKey = new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        if (groupedData[dateKey]) {
-          if (t.type === 'income') {
-            groupedData[dateKey].income += t.amount;
-          } else {
-            groupedData[dateKey].expenses += t.amount;
-          }
-        }
+        if (!groupedData[dateKey]) return;
+        const amount = Number(t.amount) || 0;
+        if (t.type === 'income') groupedData[dateKey].income += amount;
+        else groupedData[dateKey].expenses += amount;
       });
       
       const data = Object.values(groupedData);

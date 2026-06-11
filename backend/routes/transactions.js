@@ -42,7 +42,18 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   POST /transactions
-// @desc    Add new transaction
+// @desc    Add new transaction.
+//
+// Budget accounting behavior:
+// - If `type === 'expense'`, the server attempts to find a matching Budget by:
+//   - user id
+//   - category (case-insensitive regex match)
+//   - period === 'monthly'
+//   - and date window containing the transaction date
+// - If a budget match exists, it increments `budget.spent`.
+//
+// Note: GET /api/budgets also computes spent from transactions, so persisted `spent`
+// is mainly to keep UI consistent and provide an incremental update path.
 // @access  Private
 router.post(
   '/',

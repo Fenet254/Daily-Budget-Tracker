@@ -120,6 +120,17 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
+// Get profile (alias for /me)
+router.get('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // Update user profile
 router.put('/profile', protect, async (req, res) => {
   try {

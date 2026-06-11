@@ -35,6 +35,7 @@ const transactionRoutes = require('./routes/transactions');
 const budgetRoutes = require('./routes/budgets');
 const reportRoutes = require('./routes/reports');
 const smsRoutes = require('./routes/sms');
+const categoryRoutes = require('./routes/categories');
 
 app.get('/', (req, res) => {
   res.send('Daily Budget Tracker API');
@@ -46,6 +47,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/sms', smsRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -1,0 +1,1 @@
+# Dashboard Blue Color Removal Task&#10;&#10;## Steps:&#10;1. [x] Create TODO tracking&#10;2. [ ] Remove blue background gradient from .dashboard-wrapper&#10;3. [ ] Update floating orbs to pure purple&#10;4. [ ] Test dashboard appearance&#10;5. [ ] Mark complete&#10;&#10;Status: In progress

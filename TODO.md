@@ -1,16 +1,34 @@
-# Daily Budget Tracker - Task Progress
+# Daily Budget Tracker - Full Implementation TODO
 
-## Current Task: Fix Dashboard.css image import error and set brown color theme
+## Approved Plan Status: ✅ Confirmed by user
 
-✅ **Step 1:** Create TODO.md to track progress (done)
+**Backend Enhancements (Priority 1)**
+- [x] 1.1 Update Transaction model: Add sender/sourceName, indexes
+- [x] 1.2 Update Budget model: Add lastResetDate, active flag  
+- [x] 1.3 Enhance smsParser.js: Add spec SMS examples (Telebirr/CBE), better regex
+- [x] 1.4 Enhance reports routes: Daily/weekly/monthly summaries, trends
+- [x] 1.5 Add /api/categories route (CRUD)
+- [x] 1.6 Improve error handling/logging across routes (standardized)
 
-✅ **Step 2:** Plan approved by user (okay)
+**Frontend Enhancements (Priority 2)**
+- [x] 2.1 Implement/enhance SMSImport component: Preview parsed data, submit
+- [ ] 2.2 Reports: Add CSV/PDF export (jsPDF), date filters
+- [ ] 2.3 Budgets: Visual progress, auto-reset logic
+- [ ] 2.4 Dashboard: Metrics cards, budget alerts, charts
+- [ ] 2.5 Settings: Currency toggle, SMS alerts
+- [ ] 2.6 Add global validation/toasts, error boundaries
 
-✅ **Step 3:** Edit frontend/src/components/Dashboard.css to fix background-image (remove image URL, enhance brown gradient) - SUCCESS
+**Integration & Polish (Priority 3)**
+- [ ] 3.1 Seed default categories via backend script
+- [ ] 3.2 Full end-to-end testing (SMS → Transaction → Budget update → Reports)
+- [ ] 3.3 Responsive design fixes, dark mode
+- [ ] 3.4 Install missing deps, update package.json
 
-## Next Steps:
-- **Step 4:** Verify fix by running `cd frontend && npm start` or `npm run build`
-- **Step 5:** Clean up temp files (Dashboard.css.fixed, Dashboard.css.new, Dashboard.js.new)
-- **Step 6:** Complete task
+**Testing & Deploy (Priority 4)**
+- [ ] 4.1 Backend: Test all endpoints (Postman/manual)
+- [ ] 4.2 Frontend: Test all flows (manual/e2e)
+- [ ] 4.3 Production config (.env validation)
 
-Updated: After Step 3 complete.
+**Current Progress:** Ready to start with Backend models → Step 1.1
+
+**Next Action:** Update models, then test.

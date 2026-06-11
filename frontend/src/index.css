@@ -39,9 +39,9 @@
   --neumo-shadow: 9px 9px 16px var(--neumo-dark), -9px -9px 16px var(--neumo-light);
   
   /* Background Layers */
-  --bg-primary: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
-  --bg-secondary: rgba(255, 255, 255, 0.8);
-  --bg-card: var(--glass-bg);
+--bg-primary: #ffffff;
+--bg-secondary: rgba(255,255,255,0.95);
+--bg-card: rgba(255,255,255,0.92);
   --bg-glass-dark: rgba(26, 32, 44, 0.8);
   
   /* Text Hierarchy */
@@ -110,9 +110,9 @@
    Dark Mode - Neon Glass Paradise
    ============================================ */
 [data-theme="dark"] {
-  --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+--bg-primary: #ffffff;
   --bg-secondary: rgba(30, 41, 59, 0.6);
-  --bg-card: rgba(15, 23, 42, 0.75);
+--bg-card: rgba(248,250,252,0.9);
   --bg-glass-dark: rgba(15, 23, 42, 0.9);
   
   --text-primary: #F8FAFC;
@@ -137,10 +137,10 @@
    CSS Variables - Dark Theme
    ============================================ */
 [data-theme="dark"] {
-  --bg-primary: #0F172A;
+--bg-primary: #ffffff;
   --bg-secondary: #1E293B;
   --bg-tertiary: #334155;
-  --bg-card: #1E293B;
+--bg-card: #f8fafc;
   
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;

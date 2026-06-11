@@ -8,14 +8,20 @@ import './App.css';
 
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
 const Reports = React.lazy(() => import('./components/Reports'));
+const Profile = React.lazy(() => import('./components/Profile'));
 const Transactions = React.lazy(() => import('./components/Transactions'));
 const Budgets = React.lazy(() => import('./components/Budgets'));
 const SMSImport = React.lazy(() => import('./components/SMSImport'));
 const Settings = React.lazy(() => import('./components/Settings'));
 const Contact = React.lazy(() => import('./components/Contact'));
 const Help = React.lazy(() => import('./components/Help'));
+
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
+
 const Navbar = React.lazy(() => import('./components/Navbar'));
 const Footer = React.lazy(() => import('./components/Footer'));
+
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = React.useContext(AuthContext);
@@ -39,7 +45,11 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
             <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />

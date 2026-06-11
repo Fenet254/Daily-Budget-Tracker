@@ -7,7 +7,18 @@ const { protect } = require('../middleware/auth');
 const router = express.Router();
 
 // @route   POST /sms/import
-// @desc    Import transaction from SMS
+// @desc    Import transaction from SMS.
+//
+// Flow:
+// 1) Body: { smsText }
+// 2) Parse with `parseSMS()` (regex-based) to produce structured transaction data
+// 3) Create a Transaction with `source`, `sender`, `category`, etc.
+// 4) If parsed type is `expense`, attempt to update Budget.spent by matching:
+//    - user id
+//    - category exact match (not regex)
+//    - Budget window containing the current date
+//
+// Known gap: budget matching rules may differ from manual transaction matching.
 // @access  Private
 router.post('/import', protect, async (req, res) => {
   const { smsText } = req.body;

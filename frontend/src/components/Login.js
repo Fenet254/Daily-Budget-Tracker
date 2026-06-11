@@ -56,7 +56,11 @@ const Login = () => {
     
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const success = await login(formData);
+    const normalized = {
+      ...formData,
+      email: formData.email?.trim().toLowerCase(),
+    };
+    const success = await login(normalized);
     setIsLoading(false);
 
     if (success) {

@@ -23,11 +23,7 @@ const Settings = () => {
     }
   }, [location.state]);
 
-  const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    phone: user?.phone || '',
-    bio: user?.bio || '',
-  });
+  // profileData removed - use dedicated Profile page
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -78,11 +74,6 @@ const Settings = () => {
     try {
       const res = await API.get('/auth/me');
       const userData = res.data;
-      setProfileData({
-        name: userData.name || '',
-        phone: userData.phone || '',
-        bio: userData.bio || '',
-      });
       setPreferences({
         theme: userData.preferences?.theme || 'light',
         currency: userData.preferences?.currency || 'ETB',
@@ -114,20 +105,6 @@ const Settings = () => {
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await API.put('/auth/profile', profileData);
-      setUser(res.data);
-      showToast('Profile updated successfully!', 'success');
-    } catch (error) {
-      showToast(error.response?.data?.msg || 'Failed to update profile', 'error');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handlePasswordChange = async (e) => {
@@ -212,43 +189,11 @@ const Settings = () => {
       case 'account':
         return (
           <div className="settings-section">
-            <div className="settings-card">
+            <div className="settings-card full-width">
               <h3 className="settings-card-title">
                 <FiUser /> Profile Information
               </h3>
-              <p className="settings-card-description">Update your personal information</p>
-              <form onSubmit={handleProfileUpdate} className="settings-form">
-                <div className="form-group">
-                  <label>Full Name</label>
-                  <input
-                    type="text"
-                    value={profileData.name}
-                    onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                    placeholder="Enter your name"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    value={profileData.phone}
-                    onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                    placeholder="Enter phone number"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Bio</label>
-                  <textarea
-                    value={profileData.bio}
-                    onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
-                    placeholder="Tell us about yourself"
-                    rows={3}
-                  />
-                </div>
-                <button type="submit" className="save-btn" disabled={loading}>
-                  <FiSave /> {loading ? 'Saving...' : 'Save Changes'}
-                </button>
-              </form>
+              <p>Update your name, photo, and personal details in the dedicated <a href="/profile" style={{color: '#3B82F6', textDecoration: 'none', fontWeight: 600}}>Profile page</a></p>
             </div>
 
             <div className="settings-card">
