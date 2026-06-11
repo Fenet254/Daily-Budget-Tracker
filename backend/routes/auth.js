@@ -5,34 +5,7 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Debug endpoint - REMOVE IN PRODUCTION
-router.post('/debug-login', async (req, res) => {
-  const { email, password } = req.body;
-  
-  try {
-    console.log('Debug login attempt:', email);
-    
-    let user = await User.findOne({ email });
-    console.log('User found:', user ? user.email : 'NOT FOUND');
-    
-    if (!user) {
-      return res.status(400).json({ msg: 'User not found', email });
-    }
-    
-    const isMatch = await user.matchPassword(password);
-    console.log('Password match:', isMatch);
-    
-    res.json({ 
-      found: true, 
-      email: user.email, 
-      passwordMatch: isMatch,
-      passwordHash: user.password.substring(0, 20) + '...'
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
+
 
 // Register
 router.post('/register', async (req, res) => {
